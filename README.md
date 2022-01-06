@@ -2,7 +2,7 @@
 
 This is a rewrite of the extension [Remove Comments](https://marketplace.visualstudio.com/items?itemName=plibither8.remove-comments) by plibither8.
 
-It uses the same command names in case you have key bindings or other configuration using these commands.<br/>**Be sure to uninstall the extension: `plibither8.remove-comments`**
+It uses the same command description.<br/>**Be sure to uninstall the extension: `plibither8.remove-comments`**
 
 It fixes a number of issues:
 
@@ -12,6 +12,8 @@ It fixes a number of issues:
 
 If the comment starts and ends on the same line it is a single line comment. If the language does not have an open and matching close comment delimeters you only have single line comments. An example of open and matching close comment delimeters are `/*` and `*/`.
 
+If any of the supported languages contains a mistake or if you use a language not yet supported  please create an issue at the repository.
+
 # Features
 
 * Supports both single line and multi line comments
@@ -20,8 +22,6 @@ If the comment starts and ends on the same line it is a single line comment. If 
 **Note: This extension does not 'uncomment' the comments present in the code, but removes them completely.**
 
 For **php**: You don't have to create selections for the individual `<?php ?>` blocks, these blocks are searched for in the selections, no HTML will be modified.
-
-If any of the supported languages contains a mistake or if you use a language not yet supported  please create an issue at the repository.
 
 # Usage
 
@@ -107,9 +107,14 @@ Licensed under the [MIT](LICENSE) License.
 
 # Known issues
 
-* Dockerfile: Any line that looks like a parser directive is treated as a parser directive even if it written after a comment, empty line or build instruction.
+* Dockerfile: Any line that looks like a parser directive is treated as a parser directive even if it is written after a comment, empty line or build instruction.
 
 # TODO
 
-* Perl 6 (Raku) Block comments <code>#\`(.(.).)</code>, <code>#\`{.{.}.}</code>, ...
 * Scheme and Racket may have similar Block comments <code>#;(.(.).)</code>, <code>#;{.{.}.}</code>, ...
+
+# Release Notes
+
+### 1.1.0
+* Perl 6 (Raku) Block comments <code>#\`(.(.).)</code>, <code>#\`{.{.}.}</code>, ...
+

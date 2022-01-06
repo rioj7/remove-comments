@@ -43,6 +43,7 @@ class Parser {
       if (result[2]) {
         this.blockCommentLevel--;
         if (this.blockCommentLevel === 0) {
+          this.nestedBlockComment = false;
           return true;
         }
       }
@@ -173,7 +174,12 @@ class Parser {
               }
               charIdx += commDelim[0].length;
               // reEnd = new RegExp(regexpEscape(commDelim[1]), 'g');
-              reEnd = new RegExp(`(${regexpEscape(commDelim[0])})|(${regexpEscape(commDelim[1])})`, 'g');
+              let [openDelim, closeDelim] = [commDelim[0], commDelim[1]];
+              if (commDelim[2]) {
+                this.nestedBlockComment = true;
+                [openDelim, closeDelim] = [commDelim[1], commDelim[2]];
+              }
+              reEnd = new RegExp(`(${regexpEscape(openDelim)})|(${regexpEscape(closeDelim)})`, 'g');
               reEnd.lastIndex = charIdx;
               this.blockCommentLevel = 1;
               if (this.findBlockCommentEnd(text, reEnd)) {
@@ -258,17 +264,21 @@ class Parser {
         break;
 
       case "rust":
-        this.commentDelimiters.push(["/*", "*/"]);
-        this.nestedBlockComment = true;
+        this.commentDelimiters.push(["/*", "/*", "*/"]);
         this.commentDelimiters.push(["//"]);
         this.stringDelimiters.push(['"']);
         break;
 
       case "racket":
-        this.commentDelimiters.push(["@;{", "}"]);
-        this.commentDelimiters.push(["@;"]);
+        this.commentDelimiters.push(["#|", "#|", "|#"]);
+        this.commentDelimiters.push(["#!"]);
+        this.commentDelimiters.push([";"]);
+        this.stringDelimiters.push(['"']);
+        break;
+
       case "scheme":
-        this.commentDelimiters.push(["#|", "|#"]);
+        this.commentDelimiters.push(["#|", "#|", "|#"]);
+        this.commentDelimiters.push(["#!", "!#"]);
         this.commentDelimiters.push([";"]);
         this.stringDelimiters.push(['"']);
         break;
@@ -429,6 +439,10 @@ class Parser {
         this.stringDelimiters.push(["'"]);
         this.stringDelimiters.push(["｢", "｣"]);  // https://www.evanmiller.org/a-review-of-perl-6.html
         this.stringDelimiters.push(["“", "”"]);
+        this.commentDelimiters.push(["#`(", "(", ")"]);
+        this.commentDelimiters.push(["#`{", "{", "}"]);
+        this.commentDelimiters.push(["#`[", "[", "]"]);
+        this.commentDelimiters.push(["#`<", "<", ">"]);
         this.commentDelimiters.push(["#"]);
         this.commentDelimiters.push(["=begin", "=cut"]);
         break;
