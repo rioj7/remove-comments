@@ -18,6 +18,11 @@ If any of the supported languages contains a mistake or if you use a language no
 
 * Supports both single line and multi line comments
 * Support for 60+ languages
+* Keep `#!` first lines
+* Keep editor encoding lines, like
+    * `# -*- coding: utf-8 -*-`
+    * `// -*- coding: utf-8 -*-`
+    * `/* -*- coding: utf-8 -*- */`
 
 **Note: This extension does not 'uncomment' the comments present in the code, but removes them completely.**
 
@@ -27,9 +32,9 @@ For **php**: You don't have to create selections for the individual `<?php ?>` b
 
 * Remove comments in your code by opening the command palette (<kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>P</kbd>), choose any of the following commands:
 
-    * **Remove All Comments**
-    * **Remove All Single Line Comments**
-    * **Remove All Multiline Comments**
+    * **Comments: Remove All Comments**
+    * **Comments: Remove All Single Line Comments**
+    * **Comments: Remove All Multiline Comments**
 
 # Supported Languages
 
@@ -115,6 +120,8 @@ Licensed under the [MIT](LICENSE) License.
 
 # Release Notes
 
+### 1.2.0
+* keep editor encoding lines (`-*-`)
 ### 1.1.0
 * Perl 6 (Raku) Block comments <code>#\`(.(.).)</code>, <code>#\`{.{.}.}</code>, ...
 

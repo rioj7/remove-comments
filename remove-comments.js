@@ -2,6 +2,7 @@ const vscode = require('vscode');
 
 const SINGLE_LINE = 1;
 const MULTI_LINE = 2;
+const encodingMarker = '-*-';
 
 /** @param {string} text */
 function regexpEscape(text) {
@@ -77,6 +78,11 @@ class Parser {
       }
     }
   }
+  /** @param {string} text */
+  isEncodingLine(text) {
+    text = text.trim();
+    return text.startsWith(encodingMarker) && text.endsWith(encodingMarker);
+  }
   /** @param {vscode.TextEditor} editor  @param {vscode.TextEditorEdit} edit */
   removeComments(editor, edit) {
     if (!editor) { return; }
@@ -89,7 +95,6 @@ class Parser {
       if (selection.isEmpty) { continue; }
       let startLine = selection.start.line;
       let endLine   = selection.end.line;
-      // if (selection.end.character === 0) { endLine -= 1; }
       let insideString = false;
       let insideComment = false;
       let removeRanges = [];
@@ -118,7 +123,6 @@ class Parser {
               continue loopLine;
             }
           } else {
-            // let result = reEnd.exec(text);
             if (!this.findBlockCommentEnd(text, reEnd)) {
               continue loopLine;
             }
@@ -166,14 +170,20 @@ class Parser {
                 pos--;
               }
               rangeStart = new vscode.Position(lineNr, pos);
+              let possibleEncodingLine = false;
+              if (charIdx === 0 && text.substring(commDelim[0].length).trimLeft().startsWith(encodingMarker)) {
+                possibleEncodingLine = true;
+              }
+              charIdx += commDelim[0].length;
               if (commDelim[1] === undefined) {
+                if (possibleEncodingLine && this.isEncodingLine(text.substring(charIdx))) {
+                  continue loopLine;
+                }
                 if (this.singleLineComments) {
                   removeRanges.push(new vscode.Range(rangeStart, new vscode.Position(lineNr, text.length)));
                 }
                 continue loopLine;
               }
-              charIdx += commDelim[0].length;
-              // reEnd = new RegExp(regexpEscape(commDelim[1]), 'g');
               let [openDelim, closeDelim] = [commDelim[0], commDelim[1]];
               if (commDelim[2]) {
                 this.nestedBlockComment = true;
@@ -183,6 +193,9 @@ class Parser {
               reEnd.lastIndex = charIdx;
               this.blockCommentLevel = 1;
               if (this.findBlockCommentEnd(text, reEnd)) {
+                if (possibleEncodingLine && this.isEncodingLine(text.substring(charIdx, reEnd.lastIndex - closeDelim.length))) {
+                  continue loopLine;
+                }
                 if (this.singleLineComments) {
                   removeRanges.push(new vscode.Range(rangeStart, new vscode.Position(lineNr, reEnd.lastIndex)));
                 }
