@@ -460,6 +460,14 @@ class Parser {
         this.commentDelimiters.push(["=begin", "=cut"]);
         break;
 
+      case "blade":
+        this.commentDelimiters.push(["{{--", "--}}"]);
+        this.commentDelimiters.push(["/*", "*/"]);
+        this.commentDelimiters.push(["//"]);
+        this.commentDelimiters.push(["#"]);
+        this.stringDelimiters.push(["'"]);
+        break;
+
       case "php":
         this.selectionSplit = ["<?php", "?>"];
         this.commentDelimiters.push(["/*", "*/"]);

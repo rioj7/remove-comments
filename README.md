@@ -69,6 +69,7 @@ For **php**: You don't have to create selections for the individual `<?php ?>` b
 * JSON with comments
 * Julia
 * Kotlin
+* Laravel Blade
 * LaTex
 * Less
 * Lisp
@@ -120,6 +121,8 @@ Licensed under the [MIT](LICENSE) License.
 
 # Release Notes
 
+### 1.3.0
+* add Laravel Blade
 ### 1.2.0
 * keep editor encoding lines (`-*-`)
 ### 1.1.0
