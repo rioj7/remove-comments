@@ -33,8 +33,23 @@ For **php**: You don't have to create selections for the individual `<?php ?>` b
 * Remove comments in your code by opening the command palette (<kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>P</kbd>), choose any of the following commands:
 
     * **Comments: Remove All Comments**
+    * **Comments: Remove All Comments that have a user entered prefix**
     * **Comments: Remove All Single Line Comments**
     * **Comments: Remove All Multiline Comments**
+
+# Comments with a prefix
+
+If you choose to remove comments with a prefix you have to enter the prefix exact, this is inclusive the whitespace.
+
+The command `remove-comments.removeAllCommentsWithPrefix` can be used in a keybinding. You can pass the prefix in the argument:
+
+```
+{
+  "key": "ctrl+i p",
+  "command": "remove-comments.removeAllCommentsWithPrefix",
+  "args": { "prefix": " DELETE" }
+}
+```
 
 # Supported Languages
 

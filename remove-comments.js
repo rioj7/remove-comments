@@ -4,13 +4,15 @@ const SINGLE_LINE = 1;
 const MULTI_LINE = 2;
 const encodingMarker = '-*-';
 
+var getProperty = (obj, prop, deflt) => { return obj.hasOwnProperty(prop) ? obj[prop] : deflt; };
+
 /** @param {string} text */
 function regexpEscape(text) {
   return text.replace(/[[\]*|(){}\\]/g, m => `\\${m}`);
 }
 
 class Parser {
-  constructor(languageID, comments) {
+  constructor(languageID, comments, prefix) {
     this.commentDelimiters = [];
     this.stringDelimiters = [];
     this.singleLineComments = (comments & SINGLE_LINE) !== 0;
@@ -22,7 +24,7 @@ class Parser {
     this.nestedBlockComment = false;
     this.blockCommentLevel = undefined;
     this.selectionSplit = undefined;
-    this.setDelimiter(languageID);
+    this.setDelimiter(languageID, prefix);
   }
   isCommentLine(text) {
     if (this.commentLineRE === undefined) { return false; }
@@ -228,7 +230,7 @@ class Parser {
       }
     }
   }
-  setDelimiter(languageID) {
+  setDelimiter(languageID, prefix) {
     this.supportedLanguage = true;
     this.commentDelimiters = [];
     this.stringDelimiters = [];
@@ -485,6 +487,9 @@ class Parser {
         this.supportedLanguage = false;
         break;
     }
+    if (prefix) {
+      this.commentDelimiters.forEach( c => c[0] += prefix );
+    }
     return this.supportedLanguage;
   }
 }
@@ -492,8 +497,8 @@ class Parser {
 function activate(context) {
 
   /** @param {vscode.TextEditor} editor  @param {vscode.TextEditorEdit} edit @param {number} comments */
-  let removeComments = function (editor, edit, comments) {
-    let parser = new Parser(editor.document.languageId, comments);
+  let removeComments = function (editor, edit, comments, prefix) {
+    let parser = new Parser(editor.document.languageId, comments, prefix);
     if (!parser.supportedLanguage) {
       vscode.window.showInformationMessage(`Cannot remove comments: unknown language (${editor.document.languageId})`);
       return;
@@ -503,6 +508,16 @@ function activate(context) {
 
   context.subscriptions.push(vscode.commands.registerTextEditorCommand('remove-comments.removeAllComments', (editor, edit, args) => {
     removeComments(editor, edit, SINGLE_LINE | MULTI_LINE);
+  }));
+  context.subscriptions.push(vscode.commands.registerTextEditorCommand('remove-comments.removeAllCommentsWithPrefix', async (editor, edit, args) => {
+    let prefix = undefined;
+    if (args) {
+      prefix = getProperty(args, 'prefix');
+    } else {
+      prefix = await vscode.window.showInputBox({title: 'Comment Prefix'});
+    }
+    if (prefix === undefined || prefix.length === 0) { return; }
+    editor.edit( editBuilder => { removeComments(editor, editBuilder, SINGLE_LINE | MULTI_LINE, prefix); }); // because of the possible await
   }));
   context.subscriptions.push(vscode.commands.registerTextEditorCommand('remove-comments.removeSingleLineComments', (editor, edit, args) => {
     removeComments(editor, edit, SINGLE_LINE);

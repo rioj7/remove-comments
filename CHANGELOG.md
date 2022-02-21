@@ -3,6 +3,11 @@
 ## [Unreleased]
 ### Added
 
+## [1.4.0] 2022-02-21
+### Added
+- remove comments with a user entered prefix
+- add CHANGELOG.md
+
 ## [1.3.0] 2022-01-17
 ### Added
 - add Laravel Blade
