@@ -118,13 +118,3 @@ Licensed under the [MIT](LICENSE) License.
 # TODO
 
 * Scheme and Racket may have similar Block comments <code>#;(.(.).)</code>, <code>#;{.{.}.}</code>, ...
-
-# Release Notes
-
-### 1.3.0
-* add Laravel Blade
-### 1.2.0
-* keep editor encoding lines (`-*-`)
-### 1.1.0
-* Perl 6 (Raku) Block comments <code>#\`(.(.).)</code>, <code>#\`{.{.}.}</code>, ...
-
