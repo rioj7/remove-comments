@@ -12,7 +12,7 @@ function regexpEscape(text) {
 }
 
 class Parser {
-  constructor(languageID, comments, prefix) {
+  constructor(languageID, comments, prefix, keepJSDocString) {
     this.commentDelimiters = [];
     this.stringDelimiters = [];
     this.singleLineComments = (comments & SINGLE_LINE) !== 0;
@@ -24,6 +24,7 @@ class Parser {
     this.nestedBlockComment = false;
     this.blockCommentLevel = undefined;
     this.selectionSplit = undefined;
+    this.keepJSDocString = keepJSDocString;
     this.setDelimiter(languageID, prefix);
   }
   isCommentLine(text) {
@@ -250,7 +251,9 @@ class Parser {
 
       case "javascript":
       case "javascriptreact":
-        this.stringDelimiters.push(["/**", "*/"]);  // JSDOC
+        if (this.keepJSDocString) {
+          this.stringDelimiters.push(["/**", "*/"]);  // JSDOC
+        }
       case "typescript":
       case "typescriptreact":
         this.stringDelimiters.push(["`"]);
@@ -496,14 +499,17 @@ class Parser {
 
 function activate(context) {
 
+  let keepJSDocString = true;
+
   /** @param {vscode.TextEditor} editor  @param {vscode.TextEditorEdit} edit @param {number} comments */
   let removeComments = function (editor, edit, comments, prefix) {
-    let parser = new Parser(editor.document.languageId, comments, prefix);
+    let parser = new Parser(editor.document.languageId, comments, prefix, keepJSDocString);
     if (!parser.supportedLanguage) {
       vscode.window.showInformationMessage(`Cannot remove comments: unknown language (${editor.document.languageId})`);
       return;
     }
     parser.removeComments(editor, edit);
+    keepJSDocString = true;
   };
 
   context.subscriptions.push(vscode.commands.registerTextEditorCommand('remove-comments.removeAllComments', (editor, edit, args) => {
@@ -524,6 +530,9 @@ function activate(context) {
   }));
   context.subscriptions.push(vscode.commands.registerTextEditorCommand('remove-comments.removeMultilineComments', (editor, edit, args) => {
     removeComments(editor, edit, MULTI_LINE);
+  }));
+  context.subscriptions.push(vscode.commands.registerTextEditorCommand('remove-comments.markJSDocStringAsComment', () => {
+    keepJSDocString = false;
   }));
 }
 

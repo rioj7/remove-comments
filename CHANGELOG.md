@@ -3,6 +3,10 @@
 ## [Unreleased]
 ### Added
 
+## [1.5.0] 2022-04-13
+### Added
+- mark JSDOC strings as comments
+
 ## [1.4.0] 2022-02-21
 ### Added
 - remove comments with a user entered prefix

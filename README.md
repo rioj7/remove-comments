@@ -37,6 +37,9 @@ For **php**: You don't have to create selections for the individual `<?php ?>` b
     * **Comments: Remove All Single Line Comments**
     * **Comments: Remove All Multiline Comments**
 
+Javascript has comments that are treated as [JSDOC](https://jsdoc.app/index.html) strings: `/** ..... */`  
+They are handled by the removal commands as strings. If you also want to remove these you can mark them as comments with the command: **Comments: Mark JSDOC String as comment. For next removal only.**. In **only the next call** of the Remove commands these will also be removed for JavaScript files.
+
 # Comments with a prefix
 
 If you choose to remove comments with a prefix you have to enter the prefix exact, this is inclusive the whitespace.
