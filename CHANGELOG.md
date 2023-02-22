@@ -1,7 +1,9 @@
 # Change Log
 
-## [Unreleased]
+## [1.5.1] 2023-02-22
 ### Added
+- `jsonc`: allow `/* ... */`) as comment delimiter
+- README: how to deal with JavaScript/TypeScript literal Regular Expressions (`/../`) containing string or comment delimiter(s)
 
 ## [1.5.0] 2022-04-13
 ### Added

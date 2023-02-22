@@ -270,8 +270,8 @@ class Parser {
       case "scala":
       case "shaderlab":
       case "swift":
-        this.commentDelimiters.push(["/*", "*/"]);
       case "jsonc":
+        this.commentDelimiters.push(["/*", "*/"]);
         this.stringDelimiters.push(['"']);
         this.commentDelimiters.push(["//"]);
         break;
