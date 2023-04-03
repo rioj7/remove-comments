@@ -1,8 +1,12 @@
 # Change Log
 
+## [1.5.2] 2023-04-03
+### Added
+- `javascriptreact` : JavaScript React (JSX) only `{/* ... */}` as comment delimiter
+
 ## [1.5.1] 2023-02-22
 ### Added
-- `jsonc`: allow `/* ... */`) as comment delimiter
+- `jsonc`: allow `/* ... */` as comment delimiter
 - README: how to deal with JavaScript/TypeScript literal Regular Expressions (`/../`) containing string or comment delimiter(s)
 
 ## [1.5.0] 2022-04-13

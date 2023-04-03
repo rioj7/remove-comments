@@ -249,8 +249,9 @@ class Parser {
         this.commentDelimiters.push(["#"]);
         break;
 
-      case "javascript":
       case "javascriptreact":
+        this.commentDelimiters.push(["{/*", "*/}"]);
+      case "javascript":
         if (this.keepJSDocString) {
           this.stringDelimiters.push(["/**", "*/"]);  // JSDOC
         }
@@ -271,9 +272,11 @@ class Parser {
       case "shaderlab":
       case "swift":
       case "jsonc":
-        this.commentDelimiters.push(["/*", "*/"]);
+        if (languageID.toLowerCase() !== 'javascriptreact') {
+          this.commentDelimiters.push(["/*", "*/"]);
+          this.commentDelimiters.push(["//"]);
+        }
         this.stringDelimiters.push(['"']);
-        this.commentDelimiters.push(["//"]);
         break;
 
       case "c":
