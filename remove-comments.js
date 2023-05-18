@@ -270,6 +270,7 @@ class Parser {
       case "kotlin":
       case "scala":
       case "shaderlab":
+      case "solidity":
       case "swift":
       case "jsonc":
         if (languageID.toLowerCase() !== 'javascriptreact') {

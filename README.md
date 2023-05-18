@@ -113,6 +113,7 @@ The command `remove-comments.removeAllCommentsWithPrefix` can be used in a keybi
 * SCSS
 * Shaderlab
 * Shell Script (bash)
+* Solidity
 * Spark
 * SQL
 * Swift

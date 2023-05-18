@@ -1,5 +1,9 @@
 # Change Log
 
+## [1.5.3] 2023-05-18
+### Added
+- add Solidity
+
 ## [1.5.2] 2023-04-03
 ### Added
 - `javascriptreact` : JavaScript React (JSX) only `{/* ... */}` as comment delimiter
