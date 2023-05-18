@@ -1,8 +1,10 @@
 # Change Log
 
-## [1.5.3] 2023-05-18
+## [1.5.4] 2023-05-18
 ### Added
 - add Solidity
+### Fixed
+- processing of escaped characters inside strings
 
 ## [1.5.2] 2023-04-03
 ### Added

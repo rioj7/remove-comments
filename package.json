@@ -2,7 +2,7 @@
   "name": "vscode-remove-comments",
   "displayName": "Remove Comments",
   "description": "Remove all comments from your code.",
-  "version": "1.5.3",
+  "version": "1.5.4",
   "publisher": "rioj7",
   "license": "MIT",
   "engines": { "vscode": "^1.55.0" },

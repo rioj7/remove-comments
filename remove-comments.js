@@ -155,7 +155,7 @@ class Parser {
             if (text.startsWith(strDelim[0], charIdx)) {
               rangeStart = new vscode.Position(lineNr, charIdx);
               charIdx += strDelim[0].length;
-              reEnd = new RegExp(`(\\.|.)*?${regexpEscape(strDelim[1] ? strDelim[1] : strDelim[0])}`, 'y');
+              reEnd = new RegExp(`(\\\\.|.)*?${regexpEscape(strDelim[1] ? strDelim[1] : strDelim[0])}`, 'y');
               reEnd.lastIndex = charIdx;
               let result = reEnd.exec(text);
               if (result) {
