@@ -245,6 +245,7 @@ class Parser {
       case "r":
       case "shellscript":  // bash
         this.stringDelimiters.push(['"']);
+      case "toml":
       case "yaml":
         this.commentDelimiters.push(["#"]);
         break;
