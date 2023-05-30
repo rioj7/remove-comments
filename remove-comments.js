@@ -239,6 +239,7 @@ class Parser {
     switch (languageID.toLowerCase()) {
 
       case "python":
+      case "toml":
         this.stringDelimiters.push(['"""']);
         this.stringDelimiters.push(["'''"]);
         this.stringDelimiters.push(["'"]);

@@ -118,6 +118,7 @@ The command `remove-comments.removeAllCommentsWithPrefix` can be used in a keybi
 * SQL
 * Swift
 * Terraform
+* TOML
 * TypeScript
 * TypeScript React
 * Visual Basic
