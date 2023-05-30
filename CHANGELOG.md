@@ -1,5 +1,11 @@
 # Change Log
 
+## [1.5.5] 2023-05-30
+### Added
+- add TOML
+### Fixed
+- YAML: quoted scalars
+
 ## [1.5.4] 2023-05-18
 ### Added
 - add Solidity

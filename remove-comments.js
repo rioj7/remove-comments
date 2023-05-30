@@ -242,11 +242,11 @@ class Parser {
       case "toml":
         this.stringDelimiters.push(['"""']);
         this.stringDelimiters.push(["'''"]);
+      case "yaml":
         this.stringDelimiters.push(["'"]);
       case "r":
       case "shellscript":  // bash
         this.stringDelimiters.push(['"']);
-      case "yaml":
         this.commentDelimiters.push(["#"]);
         break;
 
