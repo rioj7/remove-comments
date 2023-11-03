@@ -23,7 +23,45 @@
   "main": "./remove-comments.js",
   "browser": "./remove-comments.js",
   "contributes": {
+    "configuration": {
+      "title": "Remove Comments",
+      "properties": {
+        "remove-comments.keep": {
+          "type": ["object","boolean"],
+          "description": "define named regular expressions that test comments to keep, if set to false override User/Workspace setting. Object key: languageId or \"all\"",
+          "scope": "resource",
+          "default": {},
+          "patternProperties": {
+            "^.+$": {
+              "type": ["object","boolean"],
+              "description": "for languageId or \"all\": named regular expressions that test comments to keep, if set to false override User/Workspace setting for this languageId or \"all\"",
+              "patternProperties": {
+                "^.+$": {
+                  "type": ["object","boolean"],
+                  "description": "named regular expressions that test comments to keep, if set to false override User/Workspace setting for this named regex",
+                  "properties": {
+                    "regex": {
+                      "type": "string",
+                      "description": "regular expression to search for in the comment text"
+                    },
+                    "flags": {
+                      "type": "string",
+                      "description": "(Optional) string with the regex flags \"i\" (default: \"\")"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "commands": [
+      {
+        "command": "remove-comments.ignoreKeepCommentSetting",
+        "title": "Ignore any \"remove-comments.keep\" setting. For next removal only.",
+        "category": "Comments"
+      },
       {
         "command": "remove-comments.markJSDocStringAsComment",
         "title": "Mark JSDOC String as comment. For next removal only.",

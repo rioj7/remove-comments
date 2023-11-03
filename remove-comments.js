@@ -5,14 +5,16 @@ const MULTI_LINE = 2;
 const encodingMarker = '-*-';
 
 var getProperty = (obj, prop, deflt) => { return obj.hasOwnProperty(prop) ? obj[prop] : deflt; };
+const getConfig = () => vscode.workspace.getConfiguration("remove-comments", null);
+function isString(obj) { return typeof obj === 'string';}
 
 /** @param {string} text */
 function regexpEscape(text) {
-  return text.replace(/[[\]*|(){}\\]/g, m => `\\${m}`);
+  return text.replace(/[[\]*|(){}\\.?^$+]/g, m => `\\${m}`);
 }
 
 class Parser {
-  constructor(languageID, comments, prefix, keepJSDocString) {
+  constructor(languageID, comments, prefix, keepJSDocString, keepCommentRegex) {
     this.commentDelimiters = [];
     this.stringDelimiters = [];
     this.singleLineComments = (comments & SINGLE_LINE) !== 0;
@@ -20,17 +22,24 @@ class Parser {
     this.supportedLanguage = true;
     this.commentLineRE = undefined;
     this.indentComments = false;
+    this.indentCommentContinuationLine = false;
     this.previousLineCommentLine = false;
+    this.keepCommentLine = false;
     this.nestedBlockComment = false;
     this.blockCommentLevel = undefined;
     this.selectionSplit = undefined;
     this.keepJSDocString = keepJSDocString;
+    this.keepCommentRegex = keepCommentRegex;
+    /** @type RegExpExecArray */
+    this.blockCommentEndResult = undefined;
     this.setDelimiter(languageID, prefix);
   }
   isCommentLine(text) {
     if (this.commentLineRE === undefined) { return false; }
     if (text.length === 0) { return false; }
+    this.indentCommentContinuationLine = false;
     if (this.indentComments && this.previousLineCommentLine && (text.charAt(0) <= ' ')) {
+      this.indentCommentContinuationLine = true;
       return true;
     }
     this.commentLineRE.lastIndex = 0; // in case the `g` flag was defined
@@ -48,8 +57,32 @@ class Parser {
         this.blockCommentLevel--;
         if (this.blockCommentLevel === 0) {
           this.nestedBlockComment = false;
+          this.blockCommentEndResult = result;
           return true;
         }
+      }
+    }
+    return false;
+  }
+  /** @param {vscode.TextDocument} document @param {vscode.Range} range */
+  keepComment(document, range) {
+    let text = '';
+    if (range.start.line === range.end.line) {
+      text += document.lineAt(range.start.line).text.substring(range.start.character, range.end.character);
+    } else {
+      text += document.lineAt(range.start.line).text.substring(range.start.character);
+      for (let lineNr = range.start.line+1; lineNr < range.end.line; ++lineNr) {
+        text += '\t';
+        text += document.lineAt(lineNr).text;
+      }
+      text += '\t';
+      text += document.lineAt(range.end.line).text.substring(0, range.end.character);
+    }
+    for (const keepRegex of this.keepCommentRegex) {
+      let regex = getProperty(keepRegex, 'regex');
+      if (!isString(regex) || regex.length === 0) { continue; }
+      if (new RegExp(regex, getProperty(keepRegex, 'flags')).test(text)) {
+        return true;
       }
     }
     return false;
@@ -103,6 +136,11 @@ class Parser {
       let removeRanges = [];
       let reEnd = new RegExp("_");
       let rangeStart = new vscode.Position(0, 0); // to keep intellisense happy
+      let rangeCommentTextStart = new vscode.Position(0, 0);
+      this.previousLineCommentLine = false;
+      this.keepCommentLine = false;
+      rangeStart = undefined;
+      rangeCommentTextStart = undefined;
       loopLine:
       for (var lineNr = startLine; lineNr <= endLine; ++lineNr) {
         let line = document.lineAt(lineNr);
@@ -129,7 +167,7 @@ class Parser {
             if (!this.findBlockCommentEnd(text, reEnd)) {
               continue loopLine;
             }
-            if (this.multiLineComments) {
+            if (this.multiLineComments && !this.keepComment(document, new vscode.Range(rangeCommentTextStart, new vscode.Position(lineNr, this.blockCommentEndResult.index)))) {
               removeRanges.push(new vscode.Range(rangeStart, new vscode.Position(rangeStart.line, document.lineAt(rangeStart.line).text.length)));
               if (rangeStart.line+1 !== lineNr) {
                 removeRanges.push(new vscode.Range(new vscode.Position(rangeStart.line+1, 0), new vscode.Position(lineNr, 0)));
@@ -138,17 +176,24 @@ class Parser {
             }
           }
           rangeStart = undefined;
+          rangeCommentTextStart = undefined;
           insideComment = false;
           insideString = false;
           charStartIdx = reEnd.lastIndex;
         } else {
-          if (this.isCommentLine(text) && this.singleLineComments) {
-            removeRanges.push(new vscode.Range(new vscode.Position(lineNr, charStartIdx), new vscode.Position(lineNr, text.length)));
+          if (this.isCommentLine(text)) {
+            if (!this.indentCommentContinuationLine) {
+              this.keepCommentLine = this.keepComment(document, new vscode.Range(new vscode.Position(lineNr, this.commentLineRE.lastIndex), new vscode.Position(lineNr, text.length)));
+            }
+            if (this.singleLineComments && !this.keepCommentLine) {
+              removeRanges.push(new vscode.Range(new vscode.Position(lineNr, charStartIdx), new vscode.Position(lineNr, text.length)));
+            }
             this.previousLineCommentLine = true;
             continue loopLine;
           }
         }
         this.previousLineCommentLine = false;
+        this.keepCommentLine = false;
         loopChar:
         for (let charIdx = charStartIdx; charIdx < text.length; charIdx++) {
           for (const strDelim of this.stringDelimiters) {
@@ -168,6 +213,7 @@ class Parser {
           }
           for (const commDelim of this.commentDelimiters) {
             if (text.startsWith(commDelim[0], charIdx)) {
+              rangeCommentTextStart = new vscode.Position(lineNr, charIdx + commDelim[0].length);
               let pos = charIdx;
               while ((pos > 0) && (text.charAt(pos-1) <= ' ')) {
                 pos--;
@@ -182,7 +228,7 @@ class Parser {
                 if (possibleEncodingLine && this.isEncodingLine(text.substring(charIdx))) {
                   continue loopLine;
                 }
-                if (this.singleLineComments) {
+                if (this.singleLineComments && !this.keepComment(document, new vscode.Range(rangeCommentTextStart, new vscode.Position(lineNr, text.length)))) {
                   removeRanges.push(new vscode.Range(rangeStart, new vscode.Position(lineNr, text.length)));
                 }
                 continue loopLine;
@@ -199,7 +245,7 @@ class Parser {
                 if (possibleEncodingLine && this.isEncodingLine(text.substring(charIdx, reEnd.lastIndex - closeDelim.length))) {
                   continue loopLine;
                 }
-                if (this.singleLineComments) {
+                if (this.singleLineComments && !this.keepComment(document, new vscode.Range(rangeCommentTextStart, new vscode.Position(lineNr, this.blockCommentEndResult.index)))) {
                   removeRanges.push(new vscode.Range(rangeStart, new vscode.Position(lineNr, reEnd.lastIndex)));
                 }
                 charIdx = reEnd.lastIndex-1;
@@ -338,11 +384,11 @@ class Parser {
         break;
 
       case "latex":
-        this.commentLineRE = new RegExp("^%");
+        this.commentLineRE = new RegExp("^%", "g");
         break;
 
       case "dockerfile":
-        this.commentLineRE = new RegExp("^#(?!\\s*(syntax|escape)\\s*=)", 'i');
+        this.commentLineRE = new RegExp("^#(?!\\s*(syntax|escape)\\s*=)", 'ig');
         break;
 
       case "groovy":
@@ -397,7 +443,7 @@ class Parser {
       case "makefile":
       case "ini":
       case "properties":  // *.conf
-        this.commentLineRE = new RegExp("^\\s*#");
+        this.commentLineRE = new RegExp("^\\s*#", "g");
         break;
 
       case "coffeescript":
@@ -419,7 +465,7 @@ class Parser {
         break;
 
       case "sass":
-        this.commentLineRE = new RegExp("^(//|/\\*)");
+        this.commentLineRE = new RegExp("^(//|/\\*)", "g");
         this.indentComments = true;
         this.commentDelimiters.push(["//"]);
         this.commentDelimiters.push(["/*", "*/"]);
@@ -439,7 +485,7 @@ class Parser {
       case "opencobol":
       case "bitlang-cobol":
       case "cobol":
-        this.commentLineRE = new RegExp("^......[*/]");
+        this.commentLineRE = new RegExp("^......[*/]", "g");
         break;
 
       case "powershell":
@@ -505,16 +551,42 @@ class Parser {
 function activate(context) {
 
   let keepJSDocString = true;
+  let useKeepCommentSetting = true;
 
   /** @param {vscode.TextEditor} editor  @param {vscode.TextEditorEdit} edit @param {number} comments */
   let removeComments = function (editor, edit, comments, prefix) {
-    let parser = new Parser(editor.document.languageId, comments, prefix, keepJSDocString);
+    let document_languageId = editor.document.languageId;
+    let keepCommentRegex = [];
+    const config = getConfig();
+    let keepConfig = config.get("keep");
+    if (useKeepCommentSetting && keepConfig !== false) {
+      let fillCommentRegex = (regexes) => {
+        if (regexes === false) { return; }
+        for (const key in regexes) {
+          if (!regexes.hasOwnProperty(key)) { continue; }
+          let namedRegex = regexes[key];
+          if (namedRegex === false) { continue; }
+          keepCommentRegex.push(namedRegex);
+        }
+      };
+      for (const key in keepConfig) {
+        if (!keepConfig.hasOwnProperty(key)) { continue; }
+        let regexes = keepConfig[key];
+        for (const languaId of key.split(',')) {
+          if (languaId === 'all' || languaId === document_languageId) {
+            fillCommentRegex(regexes);
+          }
+        }
+      }
+    }
+    let parser = new Parser(document_languageId, comments, prefix, keepJSDocString, keepCommentRegex);
     if (!parser.supportedLanguage) {
-      vscode.window.showInformationMessage(`Cannot remove comments: unknown language (${editor.document.languageId})`);
+      vscode.window.showInformationMessage(`Cannot remove comments: unknown language (${document_languageId})`);
       return;
     }
     parser.removeComments(editor, edit);
     keepJSDocString = true;
+    useKeepCommentSetting = true;
   };
 
   context.subscriptions.push(vscode.commands.registerTextEditorCommand('remove-comments.removeAllComments', (editor, edit, args) => {
@@ -538,6 +610,9 @@ function activate(context) {
   }));
   context.subscriptions.push(vscode.commands.registerTextEditorCommand('remove-comments.markJSDocStringAsComment', () => {
     keepJSDocString = false;
+  }));
+  context.subscriptions.push(vscode.commands.registerTextEditorCommand('remove-comments.ignoreKeepCommentSetting', () => {
+    useKeepCommentSetting = false;
   }));
 }
 

@@ -38,7 +38,13 @@ For **php**: You don't have to create selections for the individual `<?php ?>` b
     * **Comments: Remove All Multiline Comments**
 
 Javascript has comments that are treated as [JSDOC](https://jsdoc.app/index.html) strings: `/** ..... */`  
-They are handled by the removal commands as strings. If you also want to remove these you can mark them as comments with the command: **Comments: Mark JSDOC String as comment. For next removal only.**. In **only the next call** of the Remove commands these will also be removed for JavaScript files.
+They are handled by the removal commands as strings. If you also want to remove these you can mark them as comments with the command:  
+**Comments: Mark JSDOC String as comment. For next removal only.**.  
+In **only the next call** of the Remove commands these will also be removed for JavaScript files.
+
+If you have defined the setting [`remove-comments.keep`](#remove-commentskeep) you can ignore this setting with the command  
+**Comments: Ignore any "remove-comments.keep" setting. For next removal only.**  
+In **only the next call** of the Remove commands the `remove-comments.keep` setting is not used.
 
 # Comments with a prefix
 
@@ -53,6 +59,109 @@ The command `remove-comments.removeAllCommentsWithPrefix` can be used in a keybi
   "args": { "prefix": " DELETE" }
 }
 ```
+# Settings
+
+## `remove-comments.keep`
+
+With the setting `remove-comments.keep` you are able to define which comments to keep by testing the comment text with a Regular Expression. The comment text is all the text of the comment without the comment delimiters. For a block comment (like `/* ... */`) the lines are separated with a Tab character. The _Indent Comment Continuation_ lines are not part of the comment text, but have the same action (keep/remove) as the first line.
+
+The setting `remove-comments.keep` is an object with the keys a [languageId](https://code.visualstudio.com/docs/languages/overview#_language-id). You can use any known VSC languageId and the special languageId `all`. The `all` key is used for any file.
+
+The key can also be a list of languageId's separated by '`,`' (comma). This way you can use the same rules for multiple languageId's or remove specific rules in the Workspace/Folder settings if you add an _illegal_ languageId to _name_ the group of rules for the languageId's:
+
+```json
+"remove-comments.keep": {
+  "#grp1,all": {
+    "region": {
+      "regex": "^\\s*#(end)?region"
+    }
+  },
+  "#grp2,all": {
+    "todo": {
+      "regex": "^\\s*TODO",
+      "flags": "i"
+    }
+  }
+}
+```
+
+The value for each languageId is an object with the keys a name for the named regular expression to use. In VSC the setting objects are merged. By using a name you can override/remove a particular named regular expression defined at the User or Workspace level.
+
+Each named regular expression is an object with the following properties:
+
+* `regex` : the regular expression to test on the comment text. If there is a match the comment is not removed
+* `flags` : (Optional) the flags to use for the regular expression (default: `""`)
+
+### Example
+
+If you use the `#region`/`#endregion` feature of VSC to create custom folds they are stored in the file using comments like  
+`// #region name`  
+`// #endregion`  
+To keep these lines in any file you can define the setting:
+
+```json
+"remove-comments.keep": {
+  "all": {
+    "region": {
+      "regex": "^\\s*#(end)?region"
+    }
+  }
+}
+```
+
+Use a particular languageId if you want to limit to certain files.
+
+### Override or Remove a User or Workspace setting
+
+In VSC the setting objects are merged:
+
+* If you define a new key the key-value is added to the existing object.
+* Existing keys get the value replaced or merged.
+
+You can remove a setting by using a `false` value:
+
+* remove any keep-test in User or Workspace setting:
+  ```json
+  "remove-comments.keep": false
+  ```
+* remove keep-tests for a particular languageId:
+  ```json
+  "remove-comments.keep": {
+    "all": false,
+    "javascript": false
+  }
+  ```
+* remove a particular named regular expression keep-test:
+  ```json
+  "remove-comments.keep": {
+    "all": {
+      "region": false
+    }
+  }
+  ```
+
+You can override a named regular expression in the Workspace/Folder settings by redifining the object keys `regex` and/or `flags`:
+
+* override the regular expression:
+  ```json
+  "remove-comments.keep": {
+    "all": {
+      "region": {
+        "regex": "^\\s*##(end)?region"
+      }
+    }
+  }
+  ```
+* override the flags defined (in this case remove any flags):
+  ```json
+  "remove-comments.keep": {
+    "all": {
+      "region": {
+        "flags": ""
+      }
+    }
+  }
+  ```
 
 # Supported Languages
 
@@ -135,7 +244,7 @@ Licensed under the [MIT](LICENSE) License.
 
 * **Dockerfile**: Any line that looks like a parser directive is treated as a parser directive even if it is written after a comment, empty line or build instruction.
 * **JavaScript**/**TypeScript** literal Regular Expressions (`/../`) can contain string or comment delimiter(s).  
-The search for strings and comments will fail after such a literal Regular Expression. To find out if a `/` is a literal Regular Expressions start or a division operator in a math expresion needs a full JavaScript/TypeScript parser or an interface with the language server and analyze its AST.  
+The search for strings and comments will fail after such a literal Regular Expression. To find out if a `/` is a literal Regular Expressions start or a division operator in a math expression needs a full JavaScript/TypeScript parser or an interface with the language server and analyze its AST.  
 The solution is to make selections in the file before and after the literal Regular Expression. And call the Remove Comments multiple times.
 
 # TODO

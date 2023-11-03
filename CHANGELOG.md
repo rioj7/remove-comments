@@ -1,5 +1,11 @@
 # Change Log
 
+## [1.6.0] 2023-11-XX
+### Added
+- Keep comments: setting to keep certain comments, test by Regular Expression
+### Fixed
+- Indent Comment Continuation: continuation lines have the same action (keep/remove) as the first line
+
 ## [1.5.5] 2023-05-30
 ### Added
 - add TOML
