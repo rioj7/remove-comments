@@ -133,8 +133,8 @@ Licensed under the [MIT](LICENSE) License.
 
 # Known issues
 
-* Dockerfile: Any line that looks like a parser directive is treated as a parser directive even if it is written after a comment, empty line or build instruction.
-* JavaScript/TypeScript literal Regular Expressions (`/../`) can contain string or comment delimiter(s).  
+* **Dockerfile**: Any line that looks like a parser directive is treated as a parser directive even if it is written after a comment, empty line or build instruction.
+* **JavaScript**/**TypeScript** literal Regular Expressions (`/../`) can contain string or comment delimiter(s).  
 The search for strings and comments will fail after such a literal Regular Expression. To find out if a `/` is a literal Regular Expressions start or a division operator in a math expresion needs a full JavaScript/TypeScript parser or an interface with the language server and analyze its AST.  
 The solution is to make selections in the file before and after the literal Regular Expression. And call the Remove Comments multiple times.
 
