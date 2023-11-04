@@ -5,6 +5,7 @@
 - Keep comments: setting to keep certain comments, test by Regular Expression
 ### Fixed
 - Indent Comment Continuation: continuation lines have the same action (keep/remove) as the first line
+- Remove All Comments with Prefix: works for comment defined by regex and Indent Comment Continuation
 
 ## [1.5.5] 2023-05-30
 ### Added

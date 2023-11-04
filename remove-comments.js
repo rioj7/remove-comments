@@ -19,6 +19,7 @@ class Parser {
     this.stringDelimiters = [];
     this.singleLineComments = (comments & SINGLE_LINE) !== 0;
     this.multiLineComments = (comments & MULTI_LINE) !== 0;
+    this.prefix = prefix;
     this.supportedLanguage = true;
     this.commentLineRE = undefined;
     this.indentComments = false;
@@ -32,7 +33,7 @@ class Parser {
     this.keepCommentRegex = keepCommentRegex;
     /** @type RegExpExecArray */
     this.blockCommentEndResult = undefined;
-    this.setDelimiter(languageID, prefix);
+    this.setDelimiter(languageID);
   }
   isCommentLine(text) {
     if (this.commentLineRE === undefined) { return false; }
@@ -77,6 +78,9 @@ class Parser {
       }
       text += '\t';
       text += document.lineAt(range.end.line).text.substring(0, range.end.character);
+    }
+    if (this.prefix) { // keep comment if it NOT starts with the prefix
+      return !text.startsWith(this.prefix);
     }
     for (const keepRegex of this.keepCommentRegex) {
       let regex = getProperty(keepRegex, 'regex');
@@ -277,7 +281,7 @@ class Parser {
       }
     }
   }
-  setDelimiter(languageID, prefix) {
+  setDelimiter(languageID) {
     this.supportedLanguage = true;
     this.commentDelimiters = [];
     this.stringDelimiters = [];
@@ -540,9 +544,6 @@ class Parser {
       default:
         this.supportedLanguage = false;
         break;
-    }
-    if (prefix) {
-      this.commentDelimiters.forEach( c => c[0] += prefix );
     }
     return this.supportedLanguage;
   }
