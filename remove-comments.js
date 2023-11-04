@@ -65,8 +65,8 @@ class Parser {
     }
     return false;
   }
-  /** @param {vscode.TextDocument} document @param {vscode.Range} range */
-  keepComment(document, range) {
+  /** @param {vscode.TextDocument} document @param {vscode.Range} range @param {number} charIdxOpenDelim */
+  keepComment(document, range, charIdxOpenDelim) {
     let text = '';
     if (range.start.line === range.end.line) {
       text += document.lineAt(range.start.line).text.substring(range.start.character, range.end.character);
@@ -81,6 +81,9 @@ class Parser {
     }
     if (this.prefix) { // keep comment if it NOT starts with the prefix
       return !text.startsWith(this.prefix);
+    }
+    if (charIdxOpenDelim === 0 && this.isEncodingLine(text)) {
+      return true;
     }
     for (const keepRegex of this.keepCommentRegex) {
       let regex = getProperty(keepRegex, 'regex');
@@ -141,6 +144,7 @@ class Parser {
       let reEnd = new RegExp("_");
       let rangeStart = new vscode.Position(0, 0); // to keep intellisense happy
       let rangeCommentTextStart = new vscode.Position(0, 0);
+      let charIdxOpenDelim = -1;
       this.previousLineCommentLine = false;
       this.keepCommentLine = false;
       rangeStart = undefined;
@@ -171,7 +175,7 @@ class Parser {
             if (!this.findBlockCommentEnd(text, reEnd)) {
               continue loopLine;
             }
-            if (this.multiLineComments && !this.keepComment(document, new vscode.Range(rangeCommentTextStart, new vscode.Position(lineNr, this.blockCommentEndResult.index)))) {
+            if (this.multiLineComments && !this.keepComment(document, new vscode.Range(rangeCommentTextStart, new vscode.Position(lineNr, this.blockCommentEndResult.index)), charIdxOpenDelim)) {
               removeRanges.push(new vscode.Range(rangeStart, new vscode.Position(rangeStart.line, document.lineAt(rangeStart.line).text.length)));
               if (rangeStart.line+1 !== lineNr) {
                 removeRanges.push(new vscode.Range(new vscode.Position(rangeStart.line+1, 0), new vscode.Position(lineNr, 0)));
@@ -181,13 +185,14 @@ class Parser {
           }
           rangeStart = undefined;
           rangeCommentTextStart = undefined;
+          charIdxOpenDelim = -1;
           insideComment = false;
           insideString = false;
           charStartIdx = reEnd.lastIndex;
         } else {
           if (this.isCommentLine(text)) {
             if (!this.indentCommentContinuationLine) {
-              this.keepCommentLine = this.keepComment(document, new vscode.Range(new vscode.Position(lineNr, this.commentLineRE.lastIndex), new vscode.Position(lineNr, text.length)));
+              this.keepCommentLine = this.keepComment(document, new vscode.Range(new vscode.Position(lineNr, this.commentLineRE.lastIndex), new vscode.Position(lineNr, text.length)), 0);
             }
             if (this.singleLineComments && !this.keepCommentLine) {
               removeRanges.push(new vscode.Range(new vscode.Position(lineNr, charStartIdx), new vscode.Position(lineNr, text.length)));
@@ -199,7 +204,7 @@ class Parser {
         this.previousLineCommentLine = false;
         this.keepCommentLine = false;
         loopChar:
-        for (let charIdx = charStartIdx; charIdx < text.length; charIdx++) {
+        for (let charIdx = charStartIdx; charIdx < text.length; ++charIdx) {
           for (const strDelim of this.stringDelimiters) {
             if (text.startsWith(strDelim[0], charIdx)) {
               rangeStart = new vscode.Position(lineNr, charIdx);
@@ -217,22 +222,16 @@ class Parser {
           }
           for (const commDelim of this.commentDelimiters) {
             if (text.startsWith(commDelim[0], charIdx)) {
+              charIdxOpenDelim = charIdx;
               rangeCommentTextStart = new vscode.Position(lineNr, charIdx + commDelim[0].length);
               let pos = charIdx;
               while ((pos > 0) && (text.charAt(pos-1) <= ' ')) {
                 pos--;
               }
               rangeStart = new vscode.Position(lineNr, pos);
-              let possibleEncodingLine = false;
-              if (charIdx === 0 && text.substring(commDelim[0].length).trimLeft().startsWith(encodingMarker)) {
-                possibleEncodingLine = true;
-              }
               charIdx += commDelim[0].length;
               if (commDelim[1] === undefined) {
-                if (possibleEncodingLine && this.isEncodingLine(text.substring(charIdx))) {
-                  continue loopLine;
-                }
-                if (this.singleLineComments && !this.keepComment(document, new vscode.Range(rangeCommentTextStart, new vscode.Position(lineNr, text.length)))) {
+                if (this.singleLineComments && !this.keepComment(document, new vscode.Range(rangeCommentTextStart, new vscode.Position(lineNr, text.length)), charIdxOpenDelim)) {
                   removeRanges.push(new vscode.Range(rangeStart, new vscode.Position(lineNr, text.length)));
                 }
                 continue loopLine;
@@ -246,10 +245,7 @@ class Parser {
               reEnd.lastIndex = charIdx;
               this.blockCommentLevel = 1;
               if (this.findBlockCommentEnd(text, reEnd)) {
-                if (possibleEncodingLine && this.isEncodingLine(text.substring(charIdx, reEnd.lastIndex - closeDelim.length))) {
-                  continue loopLine;
-                }
-                if (this.singleLineComments && !this.keepComment(document, new vscode.Range(rangeCommentTextStart, new vscode.Position(lineNr, this.blockCommentEndResult.index)))) {
+                if (this.singleLineComments && !this.keepComment(document, new vscode.Range(rangeCommentTextStart, new vscode.Position(lineNr, this.blockCommentEndResult.index)), charIdxOpenDelim)) {
                   removeRanges.push(new vscode.Range(rangeStart, new vscode.Position(lineNr, reEnd.lastIndex)));
                 }
                 charIdx = reEnd.lastIndex-1;

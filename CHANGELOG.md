@@ -1,11 +1,12 @@
 # Change Log
 
-## [1.6.0] 2023-11-XX
+## [1.6.0] 2023-11-04
 ### Added
 - Keep comments: setting to keep certain comments, test by Regular Expression
 ### Fixed
 - Indent Comment Continuation: continuation lines have the same action (keep/remove) as the first line
 - Remove All Comments with Prefix: works for comment defined by regex and Indent Comment Continuation
+- Encoding line: works for comment defined by regex
 
 ## [1.5.5] 2023-05-30
 ### Added
