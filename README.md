@@ -59,6 +59,7 @@ The command `remove-comments.removeAllCommentsWithPrefix` can be used in a keybi
   "args": { "prefix": " DELETE" }
 }
 ```
+
 # Settings
 
 ## `remove-comments.keep`
@@ -110,6 +111,19 @@ To keep these lines in any file you can define the setting:
 ```
 
 Use a particular languageId if you want to limit to certain files.
+
+The [Zig](https://ziglang.org/) language has special comments to generate documentation.  
+If you want to keep these comments you can define the setting:
+
+```json
+"remove-comments.keep": {
+  "zig": {
+    "documentation": {
+      "regex": "^(/(?!/)|!)"
+    }
+  }
+}
+```
 
 ### Override or Remove a User or Workspace setting
 
@@ -233,6 +247,7 @@ You can override a named regular expression in the Workspace/Folder settings by 
 * Visual Basic
 * VHDL
 * YAML
+* Zig
 
 </details>
 

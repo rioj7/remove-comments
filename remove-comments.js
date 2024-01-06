@@ -207,6 +207,9 @@ class Parser {
         for (let charIdx = charStartIdx; charIdx < text.length; ++charIdx) {
           for (const strDelim of this.stringDelimiters) {
             if (text.startsWith(strDelim[0], charIdx)) {
+              if (strDelim[1] === '\n') {
+                continue loopLine;
+              }
               rangeStart = new vscode.Position(lineNr, charIdx);
               charIdx += strDelim[0].length;
               reEnd = new RegExp(`(\\\\.|.)*?${regexpEscape(strDelim[1] ? strDelim[1] : strDelim[0])}`, 'y');
@@ -535,6 +538,13 @@ class Parser {
       case "vb":
         this.commentDelimiters.push(["'"]);
         this.stringDelimiters.push(['"']);
+        break;
+
+      case "zig":
+        this.commentDelimiters.push(["//"]);
+        this.stringDelimiters.push(['"']);
+        this.stringDelimiters.push(["'"]);
+        this.stringDelimiters.push(['\\\\', '\n']);
         break;
 
       default:

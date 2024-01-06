@@ -1,5 +1,9 @@
 # Change Log
 
+## [1.7.0] 2024-01-06
+### Added
+- add Zig
+
 ## [1.6.0] 2023-11-04
 ### Added
 - Keep comments: setting to keep certain comments, test by Regular Expression
