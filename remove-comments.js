@@ -322,6 +322,8 @@ class Parser {
       case "shaderlab":
       case "solidity":
       case "swift":
+      case "verilog":
+      case "systemverilog":
       case "jsonc":
         if (languageID.toLowerCase() !== 'javascriptreact') {
           this.commentDelimiters.push(["/*", "*/"]);

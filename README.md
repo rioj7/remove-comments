@@ -245,6 +245,7 @@ You can override a named regular expression in the Workspace/Folder settings by 
 * TypeScript
 * TypeScript React
 * Visual Basic
+* Verilog / System Verilog
 * VHDL
 * YAML
 * Zig

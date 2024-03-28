@@ -1,5 +1,9 @@
 # Change Log
 
+## [1.8.0] 2024-03-28
+### Added
+- add Verilog / System Verilog
+
 ## [1.7.0] 2024-01-06
 ### Added
 - add Zig
