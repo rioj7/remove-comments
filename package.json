@@ -2,14 +2,15 @@
   "name": "vscode-remove-comments",
   "displayName": "Remove Comments",
   "description": "Remove all comments from your code.",
-  "version": "1.7.0",
+  "version": "1.8.0",
   "publisher": "rioj7",
   "license": "MIT",
   "engines": { "vscode": "^1.55.0" },
   "categories": [ "Other" ],
   "icon": "images/icon.png",
-  "keywords": ["comment","comments","delete","remove"],
+  "keywords": ["comment","comments","delete","remove","extract","strings"],
   "activationEvents": [
+    "onCommand:remove-comments.extractStrings",
     "onCommand:remove-comments.markJSDocStringAsComment",
     "onCommand:remove-comments.removeAllComments",
     "onCommand:remove-comments.removeSingleLineComments",
@@ -26,6 +27,17 @@
     "configuration": {
       "title": "Remove Comments",
       "properties": {
+        "remove-comments.extractStrings.filePath": {
+          "type": "string",
+          "description": "Full path of the file to store the extracted strings.",
+          "scope": "resource"
+        },
+        "remove-comments.extractStrings.lineJoin": {
+          "type": "string",
+          "description": "For multi line strings replace the line separator with this string.",
+          "default": "@@@@",
+          "scope": "resource"
+        },
         "remove-comments.keep": {
           "type": ["object","boolean"],
           "description": "define named regular expressions that test comments to keep, if set to false override User/Workspace setting. Object key: languageId or \"all\"",
@@ -57,6 +69,11 @@
       }
     },
     "commands": [
+      {
+        "command": "remove-comments.extractStrings",
+        "title": "Extract Strings to a file",
+        "category": "Comments"
+      },
       {
         "command": "remove-comments.ignoreKeepCommentSetting",
         "title": "Ignore any \"remove-comments.keep\" setting. For next removal only.",

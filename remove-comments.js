@@ -14,7 +14,7 @@ function regexpEscape(text) {
 }
 
 class Parser {
-  constructor(languageID, comments, prefix, keepJSDocString, keepCommentRegex) {
+  constructor(languageID, comments, prefix, keepJSDocString, keepCommentRegex, extractStringsCB) {
     this.commentDelimiters = [];
     this.stringDelimiters = [];
     this.singleLineComments = (comments & SINGLE_LINE) !== 0;
@@ -31,6 +31,7 @@ class Parser {
     this.selectionSplit = undefined;
     this.keepJSDocString = keepJSDocString;
     this.keepCommentRegex = keepCommentRegex;
+    this.extractStringsCB = extractStringsCB;
     /** @type RegExpExecArray */
     this.blockCommentEndResult = undefined;
     this.setDelimiter(languageID);
@@ -171,6 +172,7 @@ class Parser {
             if (result === null) {
               continue loopLine;
             }
+            this.extractStringsCB(rangeStart, new vscode.Position(lineNr, reEnd.lastIndex));
           } else {
             if (!this.findBlockCommentEnd(text, reEnd)) {
               continue loopLine;
@@ -207,15 +209,17 @@ class Parser {
         for (let charIdx = charStartIdx; charIdx < text.length; ++charIdx) {
           for (const strDelim of this.stringDelimiters) {
             if (text.startsWith(strDelim[0], charIdx)) {
+              rangeStart = new vscode.Position(lineNr, charIdx);
               if (strDelim[1] === '\n') {
+                this.extractStringsCB(rangeStart, new vscode.Position(lineNr, text.length));
                 continue loopLine;
               }
-              rangeStart = new vscode.Position(lineNr, charIdx);
               charIdx += strDelim[0].length;
               reEnd = new RegExp(`(\\\\.|.)*?${regexpEscape(strDelim[1] ? strDelim[1] : strDelim[0])}`, 'y');
               reEnd.lastIndex = charIdx;
               let result = reEnd.exec(text);
               if (result) {
+                this.extractStringsCB(rangeStart, new vscode.Position(lineNr, reEnd.lastIndex));
                 charIdx = reEnd.lastIndex-1;
                 continue loopChar;
               }
@@ -557,10 +561,22 @@ class Parser {
   }
 }
 
+/** @param {vscode.Uri} fileURI */
+function findTextDocument(fileURI) {
+  for (const document of vscode.workspace.textDocuments) {
+    if (document.isClosed) { continue; }
+    if (document.uri.scheme != 'file') { continue; }
+    if (document.uri.fsPath === fileURI.fsPath) { return document; }
+  }
+  return undefined;
+}
+
 function activate(context) {
 
   let keepJSDocString = true;
   let useKeepCommentSetting = true;
+  let extractStrings = false;
+  let extractedStrings = [];
 
   /** @param {vscode.TextEditor} editor  @param {vscode.TextEditorEdit} edit @param {number} comments */
   let removeComments = function (editor, edit, comments, prefix) {
@@ -588,14 +604,56 @@ function activate(context) {
         }
       }
     }
-    let parser = new Parser(document_languageId, comments, prefix, keepJSDocString, keepCommentRegex);
+    let extractStringsCB = (s, e) => {};
+    if (extractStrings) {
+      extractStringsCB = (startPosition, endPosition) => {
+        extractedStrings.push([startPosition, endPosition]);
+      };
+    }
+    let parser = new Parser(document_languageId, comments, prefix, keepJSDocString, keepCommentRegex, extractStringsCB);
     if (!parser.supportedLanguage) {
       vscode.window.showInformationMessage(`Cannot remove comments: unknown language (${document_languageId})`);
       return;
     }
     parser.removeComments(editor, edit);
+    let saveExtractedStrings = () => {
+      const config = getConfig();
+      let stringsFilePath = config.get("extractStrings.filePath");
+      let lineJoin = config.get("extractStrings.lineJoin");
+      if (!stringsFilePath) {
+        vscode.window.showErrorMessage('Setting remove-comments.extractStrings.filePath is not defined');
+        return;
+      }
+      const stringsFileURI = vscode.Uri.file(stringsFilePath);
+      const stringsDocument = findTextDocument(stringsFileURI);
+      if (!stringsDocument) {
+        vscode.window.showErrorMessage(`Please visit file, and keep tab: ${stringsFileURI.fsPath}`, "Open file")
+          .then( result => {
+            if (!result) { return; }
+            vscode.commands.executeCommand('vscode.open', stringsFileURI);
+          });
+        return;
+      }
+      let document = editor.document;
+      const fileBasename = document.uri.path.replace(/^.*\//, '');
+      let strings = '';
+      const newlineRE = new RegExp(/\r?\n/g);
+      for (const textrange of extractedStrings) {
+        let text = document.getText(new vscode.Range(textrange[0], textrange[1]));
+        text = text.replace(newlineRE, lineJoin);
+        strings += `${fileBasename}::${textrange[0].line+1}:${textrange[0].character+1} ${text}\n`;
+      }
+      let wsedit = new vscode.WorkspaceEdit();
+      wsedit.insert(stringsFileURI, new vscode.Position(stringsDocument.lineCount-1, 0), strings);
+      vscode.workspace.applyEdit(wsedit);
+    };
+    if (extractedStrings.length > 0) {
+      saveExtractedStrings();
+    }
     keepJSDocString = true;
     useKeepCommentSetting = true;
+    extractStrings = false;
+    extractedStrings = [];
   };
 
   context.subscriptions.push(vscode.commands.registerTextEditorCommand('remove-comments.removeAllComments', (editor, edit, args) => {
@@ -622,6 +680,10 @@ function activate(context) {
   }));
   context.subscriptions.push(vscode.commands.registerTextEditorCommand('remove-comments.ignoreKeepCommentSetting', () => {
     useKeepCommentSetting = false;
+  }));
+  context.subscriptions.push(vscode.commands.registerTextEditorCommand('remove-comments.extractStrings', (editor, edit, args) => {
+    extractStrings = true;
+    removeComments(editor, edit, 0);
   }));
 }
 

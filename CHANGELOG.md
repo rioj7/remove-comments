@@ -2,6 +2,7 @@
 
 ## [1.8.0] 2024-03-28
 ### Added
+- extract all strings to a file
 - add Verilog / System Verilog
 
 ## [1.7.0] 2024-01-06

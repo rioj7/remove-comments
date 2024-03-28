@@ -23,6 +23,7 @@ If any of the supported languages contains a mistake or if you use a language no
     * `# -*- coding: utf-8 -*-`
     * `// -*- coding: utf-8 -*-`
     * `/* -*- coding: utf-8 -*- */`
+* Extract the strings of the current editor to a file
 
 **Note: This extension does not 'uncomment' the comments present in the code, but removes them completely.**
 
@@ -36,6 +37,7 @@ For **php**: You don't have to create selections for the individual `<?php ?>` b
     * **Comments: Remove All Comments that have a user entered prefix**
     * **Comments: Remove All Single Line Comments**
     * **Comments: Remove All Multiline Comments**
+    * **Comments: Extract Strings to a file**
 
 Javascript has comments that are treated as [JSDOC](https://jsdoc.app/index.html) strings: `/** ..... */`  
 They are handled by the removal commands as strings. If you also want to remove these you can mark them as comments with the command:  
@@ -59,6 +61,23 @@ The command `remove-comments.removeAllCommentsWithPrefix` can be used in a keybi
   "args": { "prefix": " DELETE" }
 }
 ```
+
+# Extract Strings to a file
+
+The command **Comments: Extract Strings to a file** scans the current editor for strings and stores them in a file. The strings are appended to the file and the stored strings also have the delimiters.
+
+Each string is saved on 1 line in the format:
+
+_fileBasename_`::`_line_`:`_character_ _string_
+
+`::`_line_`:`_character_ is the position of the string start.
+
+It uses the settings:
+
+* `remove-comments.extractStrings.filePath`
+* `remove-comments.extractStrings.lineJoin`
+
+If you want to extract the strings for a large collection of files you can use the extension: [Command on All Files](https://marketplace.visualstudio.com/items?itemName=rioj7.commandOnAllFiles)
 
 # Settings
 
@@ -176,6 +195,14 @@ You can override a named regular expression in the Workspace/Folder settings by 
     }
   }
   ```
+
+## `remove-comments.extractStrings.filePath`
+
+A string containing a file system path that is to be used to store the strings extracted by the **Comments: Extract Strings to a file** command. The new strings are appended to this file.
+
+## `remove-comments.extractStrings.lineJoin`
+
+A string containing the text to replace a new line in a multi line string. Used the **Comments: Extract Strings to a file** command.
 
 # Supported Languages
 
