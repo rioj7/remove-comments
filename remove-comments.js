@@ -581,8 +581,8 @@ function activate(context) {
       for (const key in keepConfig) {
         if (!keepConfig.hasOwnProperty(key)) { continue; }
         let regexes = keepConfig[key];
-        for (const languaId of key.split(',')) {
-          if (languaId === 'all' || languaId === document_languageId) {
+        for (const languageId of key.split(',')) {
+          if (languageId === 'all' || languageId === document_languageId) {
             fillCommentRegex(regexes);
           }
         }
