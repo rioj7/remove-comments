@@ -1,5 +1,9 @@
 # Change Log
 
+## [1.8.1] 2024-06-18
+### Fixed
+- CSS, Less, SCSS - add string delimiters for url()
+
 ## [1.8.0] 2024-03-28
 ### Added
 - extract all strings to a file

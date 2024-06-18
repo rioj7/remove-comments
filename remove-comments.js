@@ -470,6 +470,8 @@ class Parser {
       case "scss":
         this.commentDelimiters.push(["//"]);
       case "css":
+        this.stringDelimiters.push(['"']);
+        this.stringDelimiters.push(["'"]);
         this.commentDelimiters.push(["/*", "*/"]);
         break;
 
