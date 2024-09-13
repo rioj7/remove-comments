@@ -204,6 +204,16 @@ A string containing a file system path that is to be used to store the strings e
 
 A string containing the text to replace a new line in a multi line string. Used the **Comments: Extract Strings to a file** command.
 
+## `remove-comments.removeBlankLines.before`
+
+Remove up to N blank lines **before** a removed comment. If the line with the comment is removed. default 0.  
+No lines outside the selection will be removed.
+
+## `remove-comments.removeBlankLines.after`
+
+Remove up to N blank lines **after** a removed comment. If the line with the comment is removed. default 0.  
+No lines outside the selection will be removed.
+
 # Supported Languages
 
 <details>

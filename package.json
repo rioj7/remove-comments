@@ -2,7 +2,7 @@
   "name": "vscode-remove-comments",
   "displayName": "Remove Comments",
   "description": "Remove all comments from your code.",
-  "version": "1.8.1",
+  "version": "1.9.0",
   "publisher": "rioj7",
   "license": "MIT",
   "engines": { "vscode": "^1.55.0" },
@@ -27,6 +27,18 @@
     "configuration": {
       "title": "Remove Comments",
       "properties": {
+        "remove-comments.removeBlankLines.before": {
+          "type": "integer",
+          "description": "Remove up to N blank lines before a removed comment.",
+          "scope": "resource",
+          "default": 0
+        },
+        "remove-comments.removeBlankLines.after": {
+          "type": "integer",
+          "description": "Remove up to N blank lines after a removed comment.",
+          "scope": "resource",
+          "default": 0
+        },
         "remove-comments.extractStrings.filePath": {
           "type": "string",
           "description": "Full path of the file to store the extracted strings.",

@@ -13,6 +13,11 @@ function regexpEscape(text) {
   return text.replace(/[[\]*|(){}\\.?^$+]/g, m => `\\${m}`);
 }
 
+/** Returns [from, to) @param {Number} from @param {Number} to */
+function range(from, to) {
+  return [...Array(to - from).keys()].map(k => k + from);
+}
+
 class Parser {
   constructor(languageID, comments, prefix, keepJSDocString, keepCommentRegex, extractStringsCB) {
     this.commentDelimiters = [];
@@ -35,6 +40,8 @@ class Parser {
     /** @type RegExpExecArray */
     this.blockCommentEndResult = undefined;
     this.setDelimiter(languageID);
+    this.removeEmptyNBefore = 0;
+    this.removeEmptyNAfter  = 0;
   }
   isCommentLine(text) {
     if (this.commentLineRE === undefined) { return false; }
@@ -126,6 +133,11 @@ class Parser {
   isEncodingLine(text) {
     text = text.trim();
     return text.startsWith(encodingMarker) && text.endsWith(encodingMarker);
+  }
+  /** @param {Number} removeEmptyNBefore @param {Number} removeEmptyNAfter */
+  setRemoveBlankLineCount(removeEmptyNBefore, removeEmptyNAfter) {
+    this.removeEmptyNBefore = removeEmptyNBefore;
+    this.removeEmptyNAfter  = removeEmptyNAfter;
   }
   /** @param {vscode.TextEditor} editor  @param {vscode.TextEditorEdit} edit */
   removeComments(editor, edit) {
@@ -264,7 +276,17 @@ class Parser {
           }
         }
       }
-      const lineTestRE = new RegExp('^\\s*$');
+      const emptyLineTestRE = new RegExp('^\\s*$');
+      let linesMultilineBlockDeleted = new Set();
+      let linesDeletePending = new Map();
+      const deleteEmptyLines = (lineNrs, startLine, lastLine) => {
+        for (const lineNrDel of lineNrs) {
+          if (lineNrDel < startLine || lineNrDel > lastLine || linesDeletePending.has(lineNrDel)) { break; }
+          let line = document.lineAt(lineNrDel);
+          if (!emptyLineTestRE.test(line.text)) { break; }
+          linesDeletePending.set(lineNrDel, line.rangeIncludingLineBreak);
+        }
+      }
       while (removeRanges.length > 0) {
         let rangesThisLine = [ removeRanges.shift() ];
         let lineNr = rangesThisLine[0].start.line;
@@ -273,14 +295,23 @@ class Parser {
         }
         if (rangesThisLine[0].end.line !== lineNr) {
           edit.delete(rangesThisLine[0]);
+          range(rangesThisLine[0].start.line, rangesThisLine[0].end.line).forEach(v => linesMultilineBlockDeleted.add(v));
           continue;
         }
         let line = document.lineAt(lineNr);
-        if (lineTestRE.test(rangesThisLine.reduceRight((t, range) => t.substring(0, range.start.character) + t.substring(range.end.character), line.text))) {
+        if (emptyLineTestRE.test(rangesThisLine.reduceRight((t, range) => t.substring(0, range.start.character) + t.substring(range.end.character), line.text))) {
           edit.delete(line.rangeIncludingLineBreak);
+          let lastLine = endLine;
+          if (selection.end.character === 0) { lastLine -= 1; }
+          deleteEmptyLines(range(lineNr-this.removeEmptyNBefore, lineNr).reverse(), startLine, lastLine);
+          deleteEmptyLines(range(lineNr+1, lineNr+this.removeEmptyNAfter+1), startLine, lastLine);
           continue;
         }
         rangesThisLine.forEach(r => { edit.delete(r); });
+      }
+      linesMultilineBlockDeleted.forEach(k => linesDeletePending.delete(k));
+      for (const r of linesDeletePending.values()) {
+        edit.delete(r);
       }
     }
   }
@@ -617,6 +648,7 @@ function activate(context) {
       vscode.window.showInformationMessage(`Cannot remove comments: unknown language (${document_languageId})`);
       return;
     }
+    parser.setRemoveBlankLineCount(config.get("removeBlankLines.before"), config.get("removeBlankLines.after"));
     parser.removeComments(editor, edit);
     let saveExtractedStrings = () => {
       const config = getConfig();

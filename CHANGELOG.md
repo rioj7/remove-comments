@@ -1,5 +1,9 @@
 # Change Log
 
+## [1.9.0] 2024-09-13
+### Added
+- settings to remove up to N Blank lines before/after a removed comment line.
+
 ## [1.8.1] 2024-06-18
 ### Fixed
 - CSS, Less, SCSS - add string delimiters for url()
