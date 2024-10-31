@@ -241,6 +241,7 @@ No lines outside the selection will be removed.
 * Haskell
 * Haxe
 * HTML
+* Jade
 * Java
 * JavaScript
 * JavaScript React
@@ -262,6 +263,7 @@ No lines outside the selection will be removed.
 * PL/SQL
 * PowerShell
 * Properties  (`*.ini`, `*.conf`)
+* Pug (Jade)
 * Python
 * R
 * Racket
@@ -276,6 +278,7 @@ No lines outside the selection will be removed.
 * Solidity
 * Spark
 * SQL
+* Stylus
 * Swift
 * Terraform
 * TOML

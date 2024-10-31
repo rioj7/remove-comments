@@ -28,6 +28,7 @@ class Parser {
     this.supportedLanguage = true;
     this.commentLineRE = undefined;
     this.indentComments = false;
+    this.commentIndent = undefined;
     this.indentCommentContinuationLine = false;
     this.previousLineCommentLine = false;
     this.keepCommentLine = false;
@@ -43,16 +44,28 @@ class Parser {
     this.removeEmptyNBefore = 0;
     this.removeEmptyNAfter  = 0;
   }
+  /** @param {string} text @returns string */
+  getIndent(text) {
+    return text.replace(/(^[ \t]*).*/, '$1');
+  }
+  /** @param {string} text @returns bool */
   isCommentLine(text) {
     if (this.commentLineRE === undefined) { return false; }
     if (text.length === 0) { return false; }
     this.indentCommentContinuationLine = false;
-    if (this.indentComments && this.previousLineCommentLine && (text.charAt(0) <= ' ')) {
-      this.indentCommentContinuationLine = true;
-      return true;
+    if (this.indentComments && this.previousLineCommentLine) {
+      let lineIndent = this.getIndent(text);
+      if (lineIndent.startsWith(this.commentIndent) && (lineIndent.length > this.commentIndent.length)) {
+        this.indentCommentContinuationLine = true;
+        return true;
+      }
     }
     this.commentLineRE.lastIndex = 0; // in case the `g` flag was defined
-    return this.commentLineRE.test(text);
+    let result = this.commentLineRE.test(text);
+    if (result) {
+      this.commentIndent = this.getIndent(text);
+    }
+    return result;
   }
   /** @param {string} text @param {RegExp} reEnd */
   findBlockCommentEnd(text, reEnd) {
@@ -159,6 +172,7 @@ class Parser {
       let rangeCommentTextStart = new vscode.Position(0, 0);
       let charIdxOpenDelim = -1;
       this.previousLineCommentLine = false;
+      this.commentIndent = undefined;
       this.keepCommentLine = false;
       rangeStart = undefined;
       rangeCommentTextStart = undefined;
@@ -216,6 +230,7 @@ class Parser {
           }
         }
         this.previousLineCommentLine = false;
+        this.commentIndent = undefined;
         this.keepCommentLine = false;
         loopChar:
         for (let charIdx = charStartIdx; charIdx < text.length; ++charIdx) {
@@ -499,6 +514,7 @@ class Parser {
 
       case "less":
       case "scss":
+      case "stylus":
         this.commentDelimiters.push(["//"]);
       case "css":
         this.stringDelimiters.push(['"']);
@@ -584,6 +600,16 @@ class Parser {
         this.stringDelimiters.push(['"']);
         this.stringDelimiters.push(["'"]);
         this.stringDelimiters.push(['\\\\', '\n']);
+        break;
+
+      case "jade":
+      case "pug":
+        this.commentLineRE = new RegExp("^[ \\t]*(//|//-)$", "g");
+        this.indentComments = true;
+        this.commentDelimiters.push(["//"]);
+        this.commentDelimiters.push(["//-"]);
+        this.stringDelimiters.push(['"']);
+        this.stringDelimiters.push(["'"]);
         break;
 
       default:

@@ -1,5 +1,10 @@
 # Change Log
 
+## [1.10.0] 2024-10-31
+### Added
+- add Pug, Jade
+- add Stylus
+
 ## [1.9.0] 2024-09-13
 ### Added
 - settings to remove up to N Blank lines before/after a removed comment line.
