@@ -1,5 +1,10 @@
 # Change Log
 
+## [1.11.0] 2024-11-13
+### Added
+- add Vue Single File
+- section split for: HTML, Vue SF, PHP
+
 ## [1.10.0] 2024-10-31
 ### Added
 - add Pug, Jade

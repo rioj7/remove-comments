@@ -40,6 +40,7 @@ class Parser {
     this.extractStringsCB = extractStringsCB;
     /** @type RegExpExecArray */
     this.blockCommentEndResult = undefined;
+    this.languageId = languageID;
     this.setDelimiter(languageID);
     this.removeEmptyNBefore = 0;
     this.removeEmptyNAfter  = 0;
@@ -117,28 +118,64 @@ class Parser {
   }
   /** @param {vscode.TextDocument} document @param {vscode.Selection[]} selections */
   *splitSelections(document, selections) {
+    let sectionBreaks = [];
+    if (this.selectionSplit !== undefined) {
+      sectionBreaks = [ {'offset': 0, 'languageId': this.selectionSplit.defaultLanguageId} ];
+      let text = document.getText();
+      let offset = 0;
+      while (true) {
+        // is there a section break ahead
+        let section = this.selectionSplit.sections.reduce((acc, config) => {
+          let startRE = new RegExp(config.start, 'g');
+          startRE.lastIndex = offset;
+          let result = startRE.exec(text);
+          if (result === null) { return acc; }
+          if (acc.offset === undefined || result.index < acc.offset) {
+            return {'offset': result.index, result, config, startRE};
+          }
+          return acc;
+        }, {'offset': undefined, result: undefined, config: undefined, startRE: undefined});
+        if (section.offset === undefined) { break; }
+        let languageId = section.config.languageId.replace(/\$\{(\d+):\?([^:]+):([^}]+)\}/g, (m, p1, p2, p3) => {
+          return (section.result[Number(p1)] !== undefined) ? p2 : p3;
+        });
+        offset = section.startRE.lastIndex;
+        section.startRE.lastIndex = 0;
+        languageId = section.result[0].replace(section.startRE, languageId);
+        if (section.offset > sectionBreaks[sectionBreaks.length-1].offset) {
+          sectionBreaks.push( {'offset': section.offset, languageId} );
+        } else {
+          sectionBreaks[sectionBreaks.length-1].languageId = languageId;
+        }
+        let stopRE = new RegExp(section.config.stop, 'g');
+        stopRE.lastIndex = offset;
+        let result = stopRE.exec(text);
+        if (result !== null) {
+          sectionBreaks.push( {'offset': result.index, 'languageId': this.selectionSplit.defaultLanguageId} );
+          offset = stopRE.lastIndex;
+        }
+      }
+      if (sectionBreaks[sectionBreaks.length-1].offset !== text.length) {
+        sectionBreaks.push( {'offset': text.length, 'languageId': undefined} );
+      }
+    }
     for (const selection of selections) {
       if (selection.isEmpty) { continue; }
       if (this.selectionSplit === undefined) {
-        yield selection;
+        yield [selection, this.languageId];
         continue;
       }
-      let text = document.getText(selection);
-      let textOffset = document.offsetAt(selection.start);
-      let foundSplit = false;
-      let offset = 0;
-      while (true) {
-        let startIdx = text.indexOf(this.selectionSplit[0], offset);
-        if (startIdx === -1) { break; }
-        startIdx += this.selectionSplit[0].length;
-        let endIdx   = text.indexOf(this.selectionSplit[1], startIdx);
-        if (endIdx === -1) { break; }
-        offset = endIdx + this.selectionSplit[1].length;
-        foundSplit = true;
-        yield new vscode.Selection(document.positionAt(textOffset+startIdx), document.positionAt(textOffset+endIdx));
-      }
-      if (!foundSplit) {
-        yield selection;
+      const seclectionStartOffset = document.offsetAt(selection.start);
+      const seclectionEndOffset = document.offsetAt(selection.end);
+      for (let sectionNr = 1; sectionNr < sectionBreaks.length; ++sectionNr) {
+        const languageId = sectionBreaks[sectionNr-1].languageId;
+        const sectionStartOffset = sectionBreaks[sectionNr-1].offset;
+        const sectionEndOffset = sectionBreaks[sectionNr].offset;
+        if (sectionEndOffset <= seclectionStartOffset || seclectionEndOffset <= sectionStartOffset) {
+          continue; // no overlap
+        }
+        yield [new vscode.Selection(document.positionAt(Math.max(seclectionStartOffset, sectionStartOffset)),
+                                    document.positionAt(Math.min(seclectionEndOffset, sectionEndOffset))), languageId];
       }
     }
   }
@@ -160,8 +197,9 @@ class Parser {
       selections = [new vscode.Selection(new vscode.Position(0,0), editor.document.positionAt(editor.document.getText().length))];
     }
     let document = editor.document;
-    for (const selection of this.splitSelections(document, selections)) {
+    for (const [selection, languageId] of this.splitSelections(document, selections)) {
       if (selection.isEmpty) { continue; }
+      this.setDelimiter(languageId);
       let startLine = selection.start.line;
       let endLine   = selection.end.line;
       let insideString = false;
@@ -336,6 +374,9 @@ class Parser {
     this.stringDelimiters = [];
 
     switch (languageID.toLowerCase()) {
+
+      case "unknown":
+        break;
 
       case "python":
       case "toml":
@@ -530,6 +571,21 @@ class Parser {
         break;
 
       case "html":
+        this.selectionSplit = {
+          'defaultLanguageId': 'html',
+          'sections': [
+            {
+              'start': '<style[^>/]*>',
+              'stop': '</style>',
+              'languageId': 'css'
+            },
+            {
+              'start': '<script[^>]*>',
+              'stop': '</script>',
+              'languageId': 'javascript'
+            }
+          ]
+        };
         this.commentDelimiters.push(["<!--", "-->"]);
         break;
 
@@ -583,7 +639,16 @@ class Parser {
         break;
 
       case "php":
-        this.selectionSplit = ["<?php", "?>"];
+        this.selectionSplit = {
+          'defaultLanguageId': 'unknown',
+          'sections': [
+            {
+              'start': '<\\?php',
+              'stop': '\\?>',
+              'languageId': 'php'
+            }
+          ]
+        };
         this.commentDelimiters.push(["/*", "*/"]);
         this.commentDelimiters.push(["//"]);
         this.commentDelimiters.push(["#"]);
@@ -610,6 +675,29 @@ class Parser {
         this.commentDelimiters.push(["//-"]);
         this.stringDelimiters.push(['"']);
         this.stringDelimiters.push(["'"]);
+        break;
+
+      case "vue":
+        this.selectionSplit = {
+          'defaultLanguageId': 'html',
+          'sections': [
+            {
+              'start': '<template( lang="([^"]+)")?>',
+              'stop': '</template>',
+              'languageId': '${2:?$2:html}'
+            },
+            {
+              'start': '<script[^>]*>',
+              'stop': '</script>',
+              'languageId': 'javascript'
+            },
+            {
+              'start': '<style( lang="([^"]+)")?>',
+              'stop': '</style>',
+              'languageId': '${2:?$2:css}'
+            }
+          ]
+        };
         break;
 
       default:

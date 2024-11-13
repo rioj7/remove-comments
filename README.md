@@ -27,7 +27,11 @@ If any of the supported languages contains a mistake or if you use a language no
 
 **Note: This extension does not 'uncomment' the comments present in the code, but removes them completely.**
 
-For **php**: You don't have to create selections for the individual `<?php ?>` blocks, these blocks are searched for in the selections, no HTML will be modified.
+For **HTML**: The `<style>` (CSS) and `<script>` (Javascript) sections are searched and the correct comment and string settings are used.
+
+For **PHP**: You don't have to create selections for the individual `<?php ?>` blocks, these blocks are searched for in the selections, no HTML will be modified.
+
+For **[Vue Single Files](https://vuejs.org/guide/scaling-up/sfc.html)**: The language used in a section (tag delimeted) is determined by the `lang` attribute in the start tag.
 
 # Usage
 
@@ -287,6 +291,7 @@ No lines outside the selection will be removed.
 * Visual Basic
 * Verilog / System Verilog
 * VHDL
+* Vue Single File
 * YAML
 * Zig
 
