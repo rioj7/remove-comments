@@ -288,6 +288,7 @@ No lines outside the selection will be removed.
 * TOML
 * TypeScript
 * TypeScript React
+* Uiua
 * Visual Basic
 * Verilog / System Verilog
 * VHDL

@@ -384,6 +384,7 @@ class Parser {
         this.stringDelimiters.push(["'''"]);
       case "yaml":
         this.stringDelimiters.push(["'"]);
+      case "uiua":
       case "r":
       case "shellscript":  // bash
         this.stringDelimiters.push(['"']);

@@ -1,5 +1,9 @@
 # Change Log
 
+## [1.12.0] 2024-12-13
+### Added
+- add Uiua
+
 ## [1.11.0] 2024-11-13
 ### Added
 - add Vue Single File
