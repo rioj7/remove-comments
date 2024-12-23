@@ -426,6 +426,7 @@ class Parser {
 
       case "c":
         this.commentDelimiters.push(["/*", "*/"]);
+        this.commentDelimiters.push(["//"]);
         this.stringDelimiters.push(['"']);
         break;
 
