@@ -218,6 +218,11 @@ No lines outside the selection will be removed.
 Remove up to N blank lines **after** a removed comment. If the line with the comment is removed. default 0.  
 No lines outside the selection will be removed.
 
+## `remove-comments.c99`
+
+In the C99 standard the single line comment `//` was added.  
+If you use C99 or later check this setting, global or in a workspace.
+
 # Supported Languages
 
 <details>

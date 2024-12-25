@@ -44,6 +44,7 @@ class Parser {
     this.setDelimiter(languageID);
     this.removeEmptyNBefore = 0;
     this.removeEmptyNAfter  = 0;
+    this.c99 = false;
   }
   /** @param {string} text @returns string */
   getIndent(text) {
@@ -188,6 +189,10 @@ class Parser {
   setRemoveBlankLineCount(removeEmptyNBefore, removeEmptyNAfter) {
     this.removeEmptyNBefore = removeEmptyNBefore;
     this.removeEmptyNAfter  = removeEmptyNAfter;
+  }
+  /** @param {boolean} enable */
+  setC99(enable) {
+    this.c99 = enable;
   }
   /** @param {vscode.TextEditor} editor  @param {vscode.TextEditorEdit} edit */
   removeComments(editor, edit) {
@@ -429,6 +434,9 @@ class Parser {
 
       case "c":
         this.commentDelimiters.push(["/*", "*/"]);
+        if (this.c99) {
+          this.commentDelimiters.push(["//"]);
+        }
         this.stringDelimiters.push(['"']);
         break;
 
@@ -767,6 +775,7 @@ function activate(context) {
       return;
     }
     parser.setRemoveBlankLineCount(config.get("removeBlankLines.before"), config.get("removeBlankLines.after"));
+    parser.setC99(config.get("c99"));
     parser.removeComments(editor, edit);
     let saveExtractedStrings = () => {
       const config = getConfig();

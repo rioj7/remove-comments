@@ -1,8 +1,9 @@
 # Change Log
 
-## [1.13.0] 2024-12-xx
+## [1.13.0] 2024-12-25
 ### Added
 - Javascript: `/*** ... */` is always a comment
+- C: `//` comment for C99+ by setting
 
 ## [1.12.0] 2024-12-13
 ### Added
