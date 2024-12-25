@@ -1,5 +1,9 @@
 # Change Log
 
+## [1.13.0] 2024-12-xx
+### Added
+- Javascript: `/*** ... */` is always a comment
+
 ## [1.12.0] 2024-12-13
 ### Added
 - add Uiua

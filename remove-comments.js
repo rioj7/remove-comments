@@ -274,6 +274,9 @@ class Parser {
         for (let charIdx = charStartIdx; charIdx < text.length; ++charIdx) {
           for (const strDelim of this.stringDelimiters) {
             if (text.startsWith(strDelim[0], charIdx)) {
+              if (strDelim[0] === "/**" && text.startsWith("/***", charIdx)) {
+                break; // this is not a JSDOC to keep but a comment
+              }
               rangeStart = new vscode.Position(lineNr, charIdx);
               if (strDelim[1] === '\n') {
                 this.extractStringsCB(rangeStart, new vscode.Position(lineNr, text.length));
