@@ -1,5 +1,9 @@
 # Change Log
 
+## [1.13.1] 2024-12-27
+### Fixed
+- shellscript (`bash`): define string delimeters `'` and `${` `}`
+
 ## [1.13.0] 2024-12-25
 ### Added
 - Javascript: `/*** ... */` is always a comment

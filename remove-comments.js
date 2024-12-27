@@ -394,7 +394,6 @@ class Parser {
         this.stringDelimiters.push(["'"]);
       case "uiua":
       case "r":
-      case "shellscript":  // bash
         this.stringDelimiters.push(['"']);
         this.commentDelimiters.push(["#"]);
         break;
@@ -438,6 +437,13 @@ class Parser {
           this.commentDelimiters.push(["//"]);
         }
         this.stringDelimiters.push(['"']);
+        break;
+
+      case "shellscript":  // bash
+        this.stringDelimiters.push(["'"]);
+        this.stringDelimiters.push(['"']);
+        this.stringDelimiters.push(["${", "}"]);
+        this.commentDelimiters.push(["#"]);
         break;
 
       case "rust":
