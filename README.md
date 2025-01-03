@@ -313,6 +313,15 @@ Licensed under the [MIT](LICENSE) License.
 * **JavaScript**/**TypeScript** literal Regular Expressions (`/../`) can contain string or comment delimiter(s).  
 The search for strings and comments will fail after such a literal Regular Expression. To find out if a `/` is a literal Regular Expressions start or a division operator in a math expression needs a full JavaScript/TypeScript parser or an interface with the language server and analyze its AST.  
 The solution is to make selections in the file before and after the literal Regular Expression. And call the Remove Comments multiple times.
+* **Bash** The hash character (`#`) is not only used for comments. It is used in variable manipulation and can be an argument of a command. Only lines that start with a `#` (ignore whitespace) are removed. Inline comments are not removed.
+  ```bash
+  (( $#branch > 32 )) && branch[13,-13]="…"  # comment
+  # Following line does not contain comment
+  cat file | grep -v -e ^# -e ^$
+  # Following line is partial comment
+  cat file | grep -v -e ^# -e ^$ ### This part is a comment
+  ```
+  If the syntax highlighting is wrong it is because the tool to create this HTML uses a simple scanner and not a parser kind. VSC uses an updated TextMate Grammar that correctly identifies the scope tokens. But an extension has no access to these scope tokens.
 
 # TODO
 

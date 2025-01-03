@@ -1,8 +1,8 @@
 # Change Log
 
-## [1.13.1] 2024-12-27
+## [1.13.2] 2025-01-03
 ### Fixed
-- shellscript (`bash`): define string delimeters `'` and `${` `}`
+- shellscript (`bash`): comment lines have first non whitespace character `#`, inline comments are not removed
 
 ## [1.13.0] 2024-12-25
 ### Added

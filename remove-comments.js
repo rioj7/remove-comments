@@ -440,10 +440,12 @@ class Parser {
         break;
 
       case "shellscript":  // bash
-        this.stringDelimiters.push(["'"]);
-        this.stringDelimiters.push(['"']);
-        this.stringDelimiters.push(["${", "}"]);
-        this.commentDelimiters.push(["#"]);
+        this.commentLineRE = new RegExp("^[ \\t]*#", "g");
+        // no need for string detection
+        // this.stringDelimiters.push(["'"]);
+        // this.stringDelimiters.push(['"']);
+        // this.stringDelimiters.push(["${", "}"]);
+        // this.commentDelimiters.push(["#"]); // '#' can be used in many places and needs a bash parser to get it right
         break;
 
       case "rust":
