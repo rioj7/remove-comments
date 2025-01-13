@@ -1,8 +1,9 @@
 # Change Log
 
-## [1.13.2] 2025-01-03
+## [1.13.3] 2025-01-13
 ### Fixed
 - shellscript (`bash`): comment lines have first non whitespace character `#`, inline comments are not removed
+- section split's inside Multiline comments
 
 ## [1.13.0] 2024-12-25
 ### Added

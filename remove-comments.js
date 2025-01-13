@@ -201,24 +201,34 @@ class Parser {
     if (selections.length === 1 && selections[0].isEmpty) {
       selections = [new vscode.Selection(new vscode.Position(0,0), editor.document.positionAt(editor.document.getText().length))];
     }
+    let insideComment = false;
+    let insideCommentLanguageID = undefined;
+    let removeRanges = [];
+    let reEnd = new RegExp("_");
+    let rangeStart = new vscode.Position(0, 0); // to keep intellisense happy
+    let rangeCommentTextStart = new vscode.Position(0, 0);
     let document = editor.document;
     for (const [selection, languageId] of this.splitSelections(document, selections)) {
+      if (insideComment) {
+        if (languageId !== insideCommentLanguageID) {
+          continue;
+        }
+      } else {
+        insideCommentLanguageID = undefined;
+        removeRanges = [];
+        reEnd = new RegExp("_");
+        rangeStart = undefined;
+        rangeCommentTextStart = undefined;
+      }
       if (selection.isEmpty) { continue; }
       this.setDelimiter(languageId);
       let startLine = selection.start.line;
       let endLine   = selection.end.line;
       let insideString = false;
-      let insideComment = false;
-      let removeRanges = [];
-      let reEnd = new RegExp("_");
-      let rangeStart = new vscode.Position(0, 0); // to keep intellisense happy
-      let rangeCommentTextStart = new vscode.Position(0, 0);
       let charIdxOpenDelim = -1;
       this.previousLineCommentLine = false;
       this.commentIndent = undefined;
       this.keepCommentLine = false;
-      rangeStart = undefined;
-      rangeCommentTextStart = undefined;
       loopLine:
       for (var lineNr = startLine; lineNr <= endLine; ++lineNr) {
         let line = document.lineAt(lineNr);
@@ -258,6 +268,7 @@ class Parser {
           rangeCommentTextStart = undefined;
           charIdxOpenDelim = -1;
           insideComment = false;
+          insideCommentLanguageID = undefined;
           insideString = false;
           charStartIdx = reEnd.lastIndex;
         } else {
@@ -332,11 +343,13 @@ class Parser {
                 continue loopChar;
               }
               insideComment = true;
+              insideCommentLanguageID = languageId;
               continue loopLine;
             }
           }
         }
       }
+      if (insideComment) { continue; }
       const emptyLineTestRE = new RegExp('^\\s*$');
       let linesMultilineBlockDeleted = new Set();
       let linesDeletePending = new Map();
