@@ -622,6 +622,10 @@ class Parser {
         this.commentDelimiters.push(["<!--", "-->"]);
         break;
 
+        case "xml":
+        this.commentDelimiters.push(["<!--", "-->"]);
+        break;
+
       case "terraform":
         this.commentDelimiters.push(["#"]);
         this.commentDelimiters.push(["//"]);
