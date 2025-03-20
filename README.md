@@ -298,6 +298,7 @@ If you use C99 or later check this setting, global or in a workspace.
 * Verilog / System Verilog
 * VHDL
 * Vue Single File
+* XML
 * YAML
 * Zig
 

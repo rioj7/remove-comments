@@ -619,6 +619,7 @@ class Parser {
             }
           ]
         };
+      case "xml":
         this.commentDelimiters.push(["<!--", "-->"]);
         break;
 

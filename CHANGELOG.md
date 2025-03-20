@@ -1,5 +1,9 @@
 # Change Log
 
+## [1.14.0] 2025-03-20
+### Added
+- add XML
+
 ## [1.13.3] 2025-01-13
 ### Fixed
 - shellscript (`bash`): comment lines have first non whitespace character `#`, inline comments are not removed
