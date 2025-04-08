@@ -412,13 +412,13 @@ class Parser {
         break;
 
       case "javascriptreact":
+      case "typescriptreact":
         this.commentDelimiters.push(["{/*", "*/}"]);
       case "javascript":
+      case "typescript":
         if (this.keepJSDocString) {
           this.stringDelimiters.push(["/**", "*/"]);  // JSDOC
         }
-      case "typescript":
-      case "typescriptreact":
         this.stringDelimiters.push(["`"]);
       case "dart":
       case "haxe":
@@ -437,10 +437,8 @@ class Parser {
       case "verilog":
       case "systemverilog":
       case "jsonc":
-        if (languageID.toLowerCase() !== 'javascriptreact') {
-          this.commentDelimiters.push(["/*", "*/"]);
-          this.commentDelimiters.push(["//"]);
-        }
+        this.commentDelimiters.push(["/*", "*/"]);
+        this.commentDelimiters.push(["//"]);
         this.stringDelimiters.push(['"']);
         break;
 

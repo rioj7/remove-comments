@@ -1,5 +1,9 @@
 # Change Log
 
+## [1.14.1] 2025-04-08
+### Fixed
+- React (JSX) comments
+
 ## [1.14.0] 2025-03-20
 ### Added
 - add XML
