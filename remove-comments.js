@@ -589,6 +589,7 @@ class Parser {
       case "stylus":
         this.commentDelimiters.push(["//"]);
       case "css":
+      case "tailwindcss":
         this.stringDelimiters.push(['"']);
         this.stringDelimiters.push(["'"]);
         this.commentDelimiters.push(["/*", "*/"]);
