@@ -3,6 +3,7 @@
 ## [1.15.0] 2025-07-02
 ### Added
 - add LAMMPS
+- add TailWindCSS
 
 ## [1.14.1] 2025-04-08
 ### Fixed

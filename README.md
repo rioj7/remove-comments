@@ -290,6 +290,7 @@ If you use C99 or later check this setting, global or in a workspace.
 * SQL
 * Stylus
 * Swift
+* TailWindCSS
 * Terraform
 * TOML
 * TypeScript
