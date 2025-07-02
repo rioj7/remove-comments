@@ -77,7 +77,7 @@ class Parser {
         this.blockCommentLevel++;
         continue;
       }
-      if (result[2]) {
+      if (result[2] !== undefined) { // can match an empty string
         this.blockCommentLevel--;
         if (this.blockCommentLevel === 0) {
           this.nestedBlockComment = false;
@@ -321,7 +321,7 @@ class Parser {
               }
               rangeStart = new vscode.Position(lineNr, pos);
               charIdx += commDelim[0].length;
-              if (commDelim[1] === undefined) {
+              if (commDelim[1] === undefined && commDelim[3] === undefined) {
                 if (this.singleLineComments && !this.keepComment(document, new vscode.Range(rangeCommentTextStart, new vscode.Position(lineNr, text.length)), charIdxOpenDelim)) {
                   removeRanges.push(new vscode.Range(rangeStart, new vscode.Position(lineNr, text.length)));
                 }
@@ -332,7 +332,12 @@ class Parser {
                 this.nestedBlockComment = true;
                 [openDelim, closeDelim] = [commDelim[1], commDelim[2]];
               }
-              reEnd = new RegExp(`(${regexpEscape(openDelim)})|(${regexpEscape(closeDelim)})`, 'g');
+              if (commDelim[3]) {
+                [openDelim, closeDelim] = [commDelim[0], commDelim[3]];
+                reEnd = new RegExp(`(${regexpEscape(openDelim)})|(${closeDelim})`, 'g');
+              } else {
+                reEnd = new RegExp(`(${regexpEscape(openDelim)})|(${regexpEscape(closeDelim)})`, 'g');
+              }
               reEnd.lastIndex = charIdx;
               this.blockCommentLevel = 1;
               if (this.findBlockCommentEnd(text, reEnd)) {
@@ -394,21 +399,27 @@ class Parser {
     this.commentDelimiters = [];
     this.stringDelimiters = [];
 
-    switch (languageID.toLowerCase()) {
+    languageID = languageID.toLowerCase();
+    switch (languageID) {
 
       case "unknown":
         break;
 
       case "python":
       case "toml":
-        this.stringDelimiters.push(['"""']);
         this.stringDelimiters.push(["'''"]);
+      case "lmps":
+        this.stringDelimiters.push(['"""']);
       case "yaml":
         this.stringDelimiters.push(["'"]);
       case "uiua":
       case "r":
         this.stringDelimiters.push(['"']);
         this.commentDelimiters.push(["#"]);
+        if (languageID === 'lmps') {
+          this.commentDelimiters = [];
+          this.commentDelimiters.push(["#", undefined, undefined, '(?<!&)$']);
+        }
         break;
 
       case "javascriptreact":

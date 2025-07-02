@@ -261,6 +261,7 @@ If you use C99 or later check this setting, global or in a workspace.
 * LaTex
 * Less
 * Lisp
+* LAMMPS
 * Lua
 * Makefile
 * Objective-C
