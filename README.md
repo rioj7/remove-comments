@@ -289,6 +289,7 @@ If you use C99 or later check this setting, global or in a workspace.
 * Spark
 * SQL
 * Stylus
+* Svelte
 * Swift
 * TailWindCSS
 * Terraform

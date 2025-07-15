@@ -613,6 +613,7 @@ class Parser {
         this.commentDelimiters.push(["/*", "*/"]);
         break;
 
+      case "svelte":
       case "html":
         this.selectionSplit = {
           'defaultLanguageId': 'html',
@@ -629,6 +630,13 @@ class Parser {
             }
           ]
         };
+        if (languageID === 'svelte') {
+          this.selectionSplit.sections.unshift({
+            'start': '<script[^>]* lang="ts"[^>]*>',
+            'stop': '</script>',
+            'languageId': 'typescript'
+          });
+        }
       case "xml":
         this.commentDelimiters.push(["<!--", "-->"]);
         break;

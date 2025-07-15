@@ -1,5 +1,9 @@
 # Change Log
 
+## [1.16.0] 2025-07-15
+### Added
+- add Svelte
+
 ## [1.15.0] 2025-07-02
 ### Added
 - add LAMMPS
