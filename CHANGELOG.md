@@ -1,5 +1,9 @@
 # Change Log
 
+## [1.16.1] 2026-01-30
+### Modified
+- go: raw_string_lit (backticks)
+
 ## [1.16.0] 2025-07-15
 ### Added
 - add Svelte

@@ -439,6 +439,9 @@ class Parser {
       case "objective-c":
       case "objective-cpp":
       case "go":
+        if (languageID === 'go') {
+          this.stringDelimiters.push(["`"]);
+        }
       case "java":
       case "kotlin":
       case "scala":
