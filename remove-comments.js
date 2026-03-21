@@ -28,6 +28,7 @@ class Parser {
     this.supportedLanguage = true;
     this.commentLineRE = undefined;
     this.indentComments = false;
+    this.jsRegexLiteral = false;
     this.commentIndent = undefined;
     this.indentCommentContinuationLine = false;
     this.previousLineCommentLine = false;
@@ -229,6 +230,7 @@ class Parser {
       this.previousLineCommentLine = false;
       this.commentIndent = undefined;
       this.keepCommentLine = false;
+      this.prevNonWhiteSpaceChar = ' ';
       loopLine:
       for (var lineNr = startLine; lineNr <= endLine; ++lineNr) {
         let line = document.lineAt(lineNr);
@@ -299,7 +301,9 @@ class Parser {
                 continue loopLine;
               }
               charIdx += strDelim[0].length;
-              reEnd = new RegExp(`(\\\\.|.)*?${regexpEscape(strDelim[1] ? strDelim[1] : strDelim[0])}`, 'y');
+              let stringCloseSeq = strDelim[1] ? strDelim[1] : strDelim[0];
+              this.prevNonWhiteSpaceChar = stringCloseSeq.charAt(stringCloseSeq.length - 1);
+              reEnd = new RegExp(`(\\\\.|.)*?${regexpEscape(stringCloseSeq)}`, 'y');
               reEnd.lastIndex = charIdx;
               let result = reEnd.exec(text);
               if (result) {
@@ -352,6 +356,30 @@ class Parser {
               continue loopLine;
             }
           }
+          if (this.jsRegexLiteral) {
+            let currentChar = text.charAt(charIdx);
+            // check for html close tag like </div>
+            if (currentChar === '/' && (languageId === "javascriptreact" || languageId === "typescriptreact") && (charIdx > 0) && (text.charAt(charIdx-1) === '<')) {
+              this.prevNonWhiteSpaceChar = ' ';
+              continue loopChar;
+            }
+            if (currentChar === '/' && (('=,:;<>!+-*/%([{'.indexOf(this.prevNonWhiteSpaceChar) >= 0) || ( charIdx >= 7 && text.slice(charIdx-7, charIdx) === 'return ')) ) {
+              charIdx += 1;
+              reEnd = new RegExp(`(\\\\.|.)*?/`, 'y');
+              reEnd.lastIndex = charIdx;
+              let result = reEnd.exec(text);
+              if (!result) {
+                vscode.window.showInformationMessage(`Regex literal starting at Line ${lineNr+1}, Col ${charIdx-1+1} is not closed at end of the line.`);
+                return;
+              }
+              this.prevNonWhiteSpaceChar = ' ';
+              charIdx = reEnd.lastIndex-1;
+              continue loopChar;
+            }
+            if (currentChar > ' ') {
+              this.prevNonWhiteSpaceChar = currentChar;
+            }
+          }
         }
       }
       if (insideComment) { continue; }
@@ -396,6 +424,7 @@ class Parser {
   }
   setDelimiter(languageID) {
     this.supportedLanguage = true;
+    this.jsRegexLiteral = false;
     this.commentDelimiters = [];
     this.stringDelimiters = [];
 
@@ -431,6 +460,7 @@ class Parser {
           this.stringDelimiters.push(["/**", "*/"]);  // JSDOC
         }
         this.stringDelimiters.push(["`"]);
+        this.jsRegexLiteral = true;
       case "dart":
       case "haxe":
         this.stringDelimiters.push(["'"]);

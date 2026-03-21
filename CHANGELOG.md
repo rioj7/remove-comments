@@ -1,5 +1,9 @@
 # Change Log
 
+## [1.17.0] 2026-03-21
+### Added
+- Javascript/TypeScript: literal Regular Expression
+
 ## [1.16.1] 2026-01-30
 ### Modified
 - go: raw_string_lit (backticks)

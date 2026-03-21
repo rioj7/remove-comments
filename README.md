@@ -315,8 +315,19 @@ Licensed under the [MIT](LICENSE) License.
 
 * **Dockerfile**: Any line that looks like a parser directive is treated as a parser directive even if it is written after a comment, empty line or build instruction.
 * **JavaScript**/**TypeScript**: literal Regular Expressions (`/../`) can contain string or comment delimiter(s).  
-The search for strings and comments will fail after such a literal Regular Expression. To find out if a `/` is a literal Regular Expressions start or a division operator in a math expression needs a full JavaScript/TypeScript parser or an interface with the language server and analyze its AST.  
-The solution is to make selections in the file before and after the literal Regular Expression. And call the Remove Comments multiple times.
+  A literal Regular Expressions can be anywhere a number is allowed. When the parser finds a `/` character it looks at the previous non-whitespace character (comments removed). If this is any of `=,:;<>!+-*/%([{` it is considered a literal Regular Expression and the search is continued after.  
+  Most likely use cases for previous non-whitespace character:
+  * `(` : function argument
+  * `[` : array value
+  * `,` : function argument, array value
+  * `>` : arrow function result
+  * `=` : assignment
+  * `:` : object value
+  * `{` : template string expression `${..}` (backtick string literal)
+
+  A special case is if the `/` is the start of the expression after the `return` keyword.  
+  The `return` keyword must be on the same line and a **single space as separator**.
+
 * **JavaScript**/**TypeScript** **React (JSX)**: StackOverflow question about: [How to use comments in React](https://stackoverflow.com/questions/30766441/how-to-use-comments-in-react)  
   **Any** place where you can have a valid JavaScript expression can be a JSX expression.  
   If the JavaScript expression starts with a `<` it is a JSX expression.
@@ -331,7 +342,8 @@ The solution is to make selections in the file before and after the literal Regu
   /* text */
   // text till EOL
   ```
-  The construct `{/* text */}` is not a special comment delimiter but define a JavaScript expression `{}` in a JSX expression, and part of that JavaScript is a piece of comment `/* */`. There can be any whitespace between `{  /*` and `*/  }`. If there is whitespace the `/* */` will be removed and the `{   }` are left in the file.
+  The construct `{/* text */}` is not a special comment delimiter but define a JavaScript expression `{}` in a JSX expression, and part of that JavaScript is a piece of comment `/* */`. There can be any whitespace between `{  /*` and `*/  }`. If there is whitespace the `/* */` will be removed and the `{   }` are left in the file.  
+  **Literal Regular Expressions**: any occurrence of `</` is considered an HTML end tag like `</div>`. If you use a literal Regular Expression with a `<` comparison operator place at least 1 space/tab inbetween.
 * **Bash**: The hash character (`#`) is not only used for comments. It is used in variable manipulation and can be an argument of a command. Only lines that start with a `#` (ignore whitespace) are removed. Inline comments are not removed.
   ```bash
   (( $#branch > 32 )) && branch[13,-13]="…"  # comment
