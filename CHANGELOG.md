@@ -1,5 +1,9 @@
 # Change Log
 
+## [1.17.1] 2026-04-17
+### Fixed
+- Vue Single File: section split tags can have other attributes beside 'lang'
+
 ## [1.17.0] 2026-03-21
 ### Added
 - Javascript/TypeScript: literal Regular Expression

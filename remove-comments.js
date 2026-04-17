@@ -767,7 +767,7 @@ class Parser {
           'defaultLanguageId': 'html',
           'sections': [
             {
-              'start': '<template( lang="([^"]+)")?>',
+              'start': '<template.*?( lang="([^"]+)")?.*?>',
               'stop': '</template>',
               'languageId': '${2:?$2:html}'
             },
@@ -777,7 +777,7 @@ class Parser {
               'languageId': 'javascript'
             },
             {
-              'start': '<style( lang="([^"]+)")?>',
+              'start': '<style.*?( lang="([^"]+)")?.*?>',
               'stop': '</style>',
               'languageId': '${2:?$2:css}'
             }
